@@ -1,0 +1,23 @@
+Grammar:
+  statements*=Statement | Comment | Skip
+;
+
+Statement:
+  'echo' lit=Literal StatementEnd
+;
+
+Literal:
+  NUMBER | STRING
+;
+
+StatementEnd:
+  ';'
+;
+
+Comment:
+  /\/\/.*\n/
+;
+
+Skip:
+  /[\n\t\r]/
+;

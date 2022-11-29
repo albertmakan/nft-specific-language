@@ -1,0 +1,35 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+  "name": "Token Solidity DSL",
+  "build": {
+    "dockerfile": "../Dockerfile.dev"
+  },
+
+  "containerEnv": {},
+
+  "settings": {
+    "terminal.integrated.profiles.linux": {
+      "bash-profile": {
+        "path": "/bin/bash"
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "bash-profile",
+    "editor.tabSize": 4
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "textX.textX",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "ms-python.python",
+        "ms-python.autopep8"
+      ],
+      "settings": {
+        "[textx]": {}
+      }
+    }
+  }
+}

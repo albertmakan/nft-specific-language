@@ -1,0 +1,14 @@
+FROM python:3.9-alpine
+
+RUN pip3 install textX
+
+# install git
+RUN apk update
+RUN apk add git
+
+# install bash
+RUN apk add --no-cache bash
+
+# install starship
+RUN apk add starship
+RUN echo 'eval "$(starship init bash)"' >> ~/.bashrc
