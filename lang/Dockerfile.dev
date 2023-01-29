@@ -1,6 +1,7 @@
 FROM python:3.9-alpine
 
 RUN pip3 install textX
+RUN pip3 install py-solc-x
 
 # install git
 RUN apk update
