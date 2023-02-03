@@ -25,6 +25,7 @@
         "eamodio.gitlens",
         "esbenp.prettier-vscode",
         "ms-python.python",
+        "JuanBlanco.solidity",
         "ms-python.autopep8"
       ],
       "settings": {
