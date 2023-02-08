@@ -1,5 +1,9 @@
 FROM python:3.9-alpine
 
+RUN apk add --update --no-cache --virtual .tmp-build-deps \
+    gcc libc-dev linux-headers postgresql-dev \
+    && apk add libffi-dev
+
 RUN pip3 install textX
 RUN pip3 install py-solc-x
 
