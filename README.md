@@ -1,18 +1,20 @@
-# JSD za definisanje Smart Contract-a za rad sa Tokenima
+# SPM - _Solidity Package Manager_
 
-## Uvod
+## Intro
 
-Domen navedenog JSD-a je izrada smart contract-a za definisanje i rad sa tokenima. Pod tokenima se misli na bilo koji vid digitalnih sredstava, odnosno onoga što predstavlja vlasništvo nad fizičkim ili virtuelnim objektom, ne uzimajući u obzir L1 i L2 tokene (nativne kriptovalute), već fokus u potpunosti staviti na L3 rešenja. Dakle, fokusiraćemo se na razvoj JSD-a koji pomaže domenskim ekspertima, u našem slučaju osobama koje se bave razvojem smart contract-a, prilikom implementacije contract-a koji mogu da definišu, dokažu i menjaju vlasništvo nad nekim objektom, odnosno predstavljaju digitalno sredstvo.
+The project consists of three parts:
+ - DSL - for defining new packages and integrating existing ones into the project
+ - CLI - for running commands and interacting with the tool
+ - Package Registry - for storing packages in a remotely accessible network
 
-## Opis projekta
+## Motivation
 
-Za početak, razvićemo JSD za definisanje NFT-a (non-fungible tokens), koji se prevodi na Solidity programski jezik. Standard za definisanje takvih smart contract-a već postoji: `ERC-721`, tako da ćemo podržati rad sa njim, uz moguća proširenja za određene slučajeve korišćenja. Ciljni jezik na koji se naš JSD prevodi jeste Solidity, ali ćemo omogućiti i podršku za direktno prevođenje na Ethereum bytecode (korišćenjem solc - solidity compiler-a). U tom slučaju, JSD bi se preveo na Solidity i odmah nakon toga na Ethereum bytecode.
+We've noticed that the syntax for defining a Contract to work with Tokens actually either doesn't take much work, or takes too much work. Namely, either it is necessary to define a _Turing Complete_ language, which there is no point in doing because Solidity already does a good job at that, or it is necessary to define a very simple language that will only specify which standards are used. After additional thinking and discussion, we concluded that it makes the most sense to implement a _Package Manager_ tool for the Solidity ecosystem in general, because such a thing does not exist, but packages must be searched for and installed manually. The DSL that we will implement will serve to define packages, that is, to integrate several different packages, as well as to generate Solidity code based on them. The tool will consist of 3 parts: the previously mentioned DSL (which represents the highest priority for us, offers various benefits to the user such as autocomplete and intellisense, syntax for defining packages, etc.), CLI for running commands that represents another interface to the user, and Package Registry - a registry for storing and downloading the specified packages, which will ideally use _IPFS_. The best analogy would perhaps be NPM, which also consists of the aforementioned parts (plus a website for users to monetize their tool :), and accordingly we named the tool SPM - Solidity Package Manager. The biggest challenges are: support for defining packages, autocomplete and intellisense options when writing a DSL script, defining a syntax that is understandable to programmers but also to people with less technical expertise, scanning local packages, and searching for existing packages in the registry (in our case, IPFS P2P network).
 
-U zavisnosti od toga koliko je zahtevna implementacija prethodno navedenog, i ukoliko budemo uvideli da ima smisla proširiti domen, bismo takođe podržali i `ERC-20` standard za rad sa tokenima čija vrednost može biti procenjena (fungible), i takođe podržali i najnoviji standard `ERC-1155` koji uzima najbolje od dva prethodno navedena standarda, i podržava rad sa semi-fungible tokenima.
-
-## Članovi tima
+## Team Members
 
 - [R2 21/2022 Albert Makan](https://github.com/albertmakan)
 - [R2 23/2022 Miloš Panić](https://github.com/panicmilos)
 - [R2 24/2022 Dragana Filipović](https://github.com/draganaf)
 - [R2 27/2022 Luka Bjelica](https://github.com/bjelicaluka)
+- [R2 40/2022 Nikola Petrović](https://github.com/nikolapetrovic1)
