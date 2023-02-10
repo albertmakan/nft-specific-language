@@ -1,38 +1,55 @@
-/*
-    An example textX language
-*/
+Script:
+    package?=PackageSection
+    contract=ContractSection
+    administration=AdministrationSection
+;
+PackageSection:
+    'packages' '{' packages*=PackageImport '}'
+;
+PackageImport:
+    'using' id=PackageId ('as' alias=ID)?
+;
+PackageId:
+    FQN
+;
+FQN: ID ('.' ID)*;
 
-Program:
-    'begin'
-      commands*=Command    // *= operator means zero or more matches.
-      // commands will be
-      // a list of command objects
-    'end'
+
+ContractSection:
+    contracts+=ContractDefinition
+;
+ContractDefinition:
+    'contract' name=ID 'combines' '{' ContractImplementation '}'
+;
+ContractImplementation:
+    methods*=Method
+;
+Method: 
+    name=FQN params?=Parameters
 ;
 
-// this is an example of abstract rule. command class will never be instantiated
-// in the model.
-Command:
-    InitialCommand | MoveCommand
+AdministrationSection:
+    'administration' '{' main_administrator=MainAdministrator extension_administrators*=ExtensionAdministrator '}'
+;
+MainAdministrator:
+    'managed' 'by' Administrator
+;
+ExtensionAdministrator:
+    'extended' 'by' Administrator
+;
+Administrator:
+    package=FQN params?=Parameters 'having' 'partial' 'access' '{' contract_administrators+=ContractAdministrator '}'
+;
+ContractAdministrator:
+    'to' contract=[ContractDefinition] '{' methods*=Method '}'
 ;
 
-InitialCommand:
-    'initial' x=INT ',' y=INT
+Parameters:
+    'with' parameters*=Parameter['and']
 ;
-
-MoveCommand:
-    direction=Direction (steps=INT)?
+Parameter:
+    value=Literal name=ID
 ;
-
-// this is an example of a match rule
-// match rules has either string match, regex match or other match rule as
-// its alternatives (e.g. int, string... or some user match rule)
-// match rule is treated as a contained match. no class will get created.
-Direction:
-    "up"|"down"|"left"|"right"
-;
-
-// special rule for comments.
-Comment:
-    /\/\/.*$/
+Literal:
+    /(100|[1-9]?\d|0)%/ | INT | FLOAT | STRING
 ;

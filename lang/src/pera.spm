@@ -1,0 +1,45 @@
+packages {
+  using std.token.numeric as numeric
+  using custom.equity.sales as sales
+  using std.single_owner
+  using std.multiple_owners
+}
+
+contract Brojko combines {
+  numeric.minting
+  numeric.balanceChecking
+  numeric.burning
+  numeric.transfering
+}
+
+contract UROSPREDICJELEGENDA combines {
+    std.single_owner
+}
+
+contract Skemer combines {
+  sales with 10% equity and 1% fee and "necar" pera and "and" panic
+}
+
+administration {
+  managed by std.single_owner with "$contract_creator" owner and "necar" pera having partial access {
+    to Brojko {
+      numeric.minting
+      numeric.balanceChecking
+      numeric.burning
+      numeric.transfering
+    }
+    to Skemer {
+      sales
+    }
+  }
+  extended by std.multiple_owners with "Milutin" owner having partial access {
+    to Brojko {
+        createToken with 3 ownersAgreed
+    }
+  }
+  extended by std.multiple_owners with "Milutin" owner having partial access {
+    to UROSPREDICJELEGENDA {
+        createToken with 3 ownersAgreed
+    }
+  }
+}
