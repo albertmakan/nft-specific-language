@@ -53,3 +53,5 @@ Parameter:
 Literal:
     /(100|[1-9]?\d|0)%/ | INT | FLOAT | STRING
 ;
+
+Comment: /\/\/.*$/;

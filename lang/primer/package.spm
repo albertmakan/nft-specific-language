@@ -1,0 +1,8 @@
+package primer {
+    S1 {
+        transfer with address sender and address recipient returns bool;
+    }
+    S2 {
+        transfer2 with address sender and address recipient returns bool;
+    }
+}

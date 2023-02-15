@@ -1,3 +1,4 @@
+// test comment
 packages {
   using std.token.numeric as numeric
   using custom.equity.sales as sales
