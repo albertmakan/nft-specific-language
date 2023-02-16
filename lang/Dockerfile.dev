@@ -4,10 +4,17 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps \
     gcc libc-dev linux-headers postgresql-dev \
     && apk add libffi-dev
 
+WORKDIR /app
+COPY . .
+
+RUN python -m pip install --upgrade pip
 RUN pip3 install textX[dev]
 RUN pip3 install py-solc-x
-RUN pip3 install -e lang/src/spm
-RUN pip3 install -e lang/src/spmgen
+
+RUN pip3 install -e src/spm
+RUN pip3 install -e src/spmgen
+RUN pip3 install -e src/spl
+RUN pip3 install -e src/splgen
 
 # install git
 RUN apk update
