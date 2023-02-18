@@ -1,6 +1,6 @@
 Script:
-    _local_packages?=LocalPackageSection
-    package?=PackageSection
+    (_local_packages=LocalPackageSection)?
+    (package=PackageSection)?
     contract=ContractSection
     administration=AdministrationSection
 ;
@@ -8,28 +8,22 @@ PackageSection:
     'packages' '{' packages*=PackageImport '}'
 ;
 PackageImport:
-    'using' id=PackageId ('as' alias=ID)?
+    'using' id=FQN ('as' alias=ID)?
 ;
-PackageId:
-    FQN
-;
-FQN: ID ('.' ID)*;
-
+FQN: ID+['.'];
 
 ContractSection:
     contracts+=ContractDefinition
 ;
 ContractDefinition:
-    'contract' name=ID 'combines' '{' ContractImplementation '}'
+    'contract' name=ID 'combines' '{' implementation=ContractImplementation '}'
 ;
 ContractImplementation:
     methods*=Method
 ;
 Method:
-    // TODO: implement references
-    name=[LocalPackage:FQN|~local_packages*.name] params?=Parameters
+    name=FQN (params=Parameters)?
 ;
-
 AdministrationSection:
     'administration' '{' main_administrator=MainAdministrator extension_administrators*=ExtensionAdministrator '}'
 ;
@@ -40,12 +34,11 @@ ExtensionAdministrator:
     'extended' 'by' Administrator
 ;
 Administrator:
-    package=FQN params?=Parameters 'having' 'partial' 'access' '{' contract_administrators+=ContractAdministrator '}'
+    package=FQN (params=Parameters)? 'having' 'partial' 'access' '{' contract_administrators+=ContractAdministrator '}'
 ;
 ContractAdministrator:
     'to' contract=[ContractDefinition] '{' methods*=Method '}'
 ;
-
 Parameters:
     'with' parameters*=Parameter['and']
 ;
@@ -53,14 +46,12 @@ Parameter:
     value=Literal name=ID
 ;
 Literal:
-    /(100|[1-9]?\d|0)%/ | INT | FLOAT | STRING
+    /(100|[1-9]?\d)%/ | INT | FLOAT | STRING
 ;
-
 LocalPackageSection:
     '_local_packages' '{' local_packages*=LocalPackage '}'
 ;
 LocalPackage:
     'package' name=FQN
 ;
-
 Comment: /\/\/.*$/;
