@@ -1,0 +1,215 @@
+{
+    "@global": {
+        "functions": {
+            "approve2": {
+                "contracts": [],
+                "functions": [
+                    "approve2",
+                    "approve3"
+                ],
+                "structs": [],
+                "variables": []
+            },
+            "approve3": {
+                "contracts": [],
+                "functions": [
+                    "approve3"
+                ],
+                "structs": [],
+                "variables": []
+            }
+        },
+        "structs": {
+            "Nemanja": {
+                "contracts": [],
+                "structs": [
+                    "Nemanja"
+                ]
+            },
+            "Nikola": {
+                "contracts": [
+                    "ERC721"
+                ],
+                "structs": [
+                    "Nemanja",
+                    "Nikola"
+                ]
+            }
+        },
+        "variables": {}
+    },
+    "ERC20": {
+        "functions": {
+            "approve": {
+                "contracts": [],
+                "functions": [
+                    "approve"
+                ],
+                "structs": [],
+                "variables": [
+                    "allowance"
+                ]
+            },
+            "transfer": {
+                "contracts": [
+                    "ERC721"
+                ],
+                "functions": [
+                    "transfer"
+                ],
+                "structs": [
+                    "Milos"
+                ],
+                "variables": [
+                    "balanceOf"
+                ]
+            },
+            "transferFrom": {
+                "contracts": [],
+                "functions": [
+                    "transferFrom"
+                ],
+                "structs": [],
+                "variables": [
+                    "balanceOf",
+                    "allowance"
+                ]
+            }
+        },
+        "structs": {
+            "Milos": {
+                "contracts": [],
+                "structs": [
+                    "Milos"
+                ]
+            }
+        },
+        "variables": {
+            "allowance": {
+                "contracts": [],
+                "structs": []
+            },
+            "balanceOf": {
+                "contracts": [],
+                "structs": []
+            },
+            "decimals": {
+                "contracts": [],
+                "structs": []
+            },
+            "milos": {
+                "contracts": [],
+                "structs": [
+                    "Milos"
+                ]
+            },
+            "milos20CAO": {
+                "contracts": [
+                    "ERC20"
+                ],
+                "structs": []
+            },
+            "name": {
+                "contracts": [],
+                "structs": []
+            },
+            "symbol": {
+                "contracts": [],
+                "structs": []
+            },
+            "totalSupply": {
+                "contracts": [],
+                "structs": []
+            }
+        }
+    },
+    "ERC721": {
+        "functions": {
+            "burn": {
+                "contracts": [],
+                "functions": [
+                    "burn"
+                ],
+                "structs": [],
+                "variables": []
+            },
+            "mint": {
+                "contracts": [],
+                "functions": [
+                    "mint"
+                ],
+                "structs": [],
+                "variables": []
+            }
+        },
+        "structs": {},
+        "variables": {
+            "decimals": {
+                "contracts": [],
+                "structs": []
+            },
+            "symbol": {
+                "contracts": [],
+                "structs": []
+            }
+        }
+    },
+    "ERCBASE": {
+        "functions": {
+            "FUNCTION_BASE": {
+                "contracts": [],
+                "functions": [
+                    "FUNCTION_BASE"
+                ],
+                "structs": [],
+                "variables": []
+            }
+        },
+        "structs": {
+            "STRUCT_BASE": {
+                "contracts": [],
+                "structs": [
+                    "STRUCT_BASE"
+                ]
+            }
+        },
+        "variables": {
+            "VARIABLE_BASE": {
+                "contracts": [],
+                "structs": []
+            }
+        }
+    },
+    "ERCINHERIT": {
+        "functions": {
+            "FUNCTION_INHERIT": {
+                "contracts": [],
+                "functions": [
+                    "FUNCTION_INHERIT",
+                    "FUNCTION_BASE"
+                ],
+                "structs": [],
+                "variables": [
+                    "VARIABLE_BASE"
+                ]
+            }
+        },
+        "structs": {
+            "STRUCT_INHERIT": {
+                "contracts": [],
+                "structs": [
+                    "STRUCT_INHERIT",
+                    "STRUCT_BASE"
+                ]
+            }
+        },
+        "variables": {
+            "VARIABLE_INHERIT": {
+                "contracts": [],
+                "structs": [
+                    "STRUCT_BASE"
+                ]
+            }
+        }
+    }
+}

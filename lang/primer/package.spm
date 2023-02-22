@@ -2,19 +2,19 @@ packages {
   // using drugih package-a ostavljamo za kraj
   using std.token.numeric as numeric
   using custom.equity.sales as sales
-  using std.single_owner
-  using std.multiple_owners
   
   using "./S1.sol" as S1
   using "./S2.sol" as S2
 }
 
 package primer {
-    S1 {
-        numeric.add
-        S1.transfer
+    parent { 
+        S1 {
+            numeric.add
+            S1.transfer
+        }
     }
     S2 {
         S2.transfer2
     }
-}
+} 

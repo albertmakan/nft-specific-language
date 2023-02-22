@@ -1,57 +1,28 @@
 Script:
-    package?=PackageSection
-    contract=ContractSection
-    administration=AdministrationSection
+    imports?=PackageImportSection
+    package=PackageExportSection
 ;
-PackageSection:
+
+PackageImportSection:
     'packages' '{' packages*=PackageImport '}'
 ;
 PackageImport:
     'using' id=PackageId ('as' alias=ID)?
 ;
 PackageId:
-    FQN
+    FQN | FilePath
 ;
+
 FQN: ID ('.' ID)*;
 
+FilePath: /\".*sol\"/;
 
-ContractSection:
-    contracts+=ContractDefinition
-;
-ContractDefinition:
-    'contract' name=ID 'combines' '{' ContractImplementation '}'
-;
-ContractImplementation:
-    methods*=Method
-;
-Method: 
-    name=FQN params?=Parameters
+PackageExportSection:
+    'package' name=ID '{' exports*=PackageExport '}'
 ;
 
-AdministrationSection:
-    'administration' '{' main_administrator=MainAdministrator extension_administrators*=ExtensionAdministrator '}'
-;
-MainAdministrator:
-    'managed' 'by' Administrator
-;
-ExtensionAdministrator:
-    'extended' 'by' Administrator
-;
-Administrator:
-    package=FQN params?=Parameters 'having' 'partial' 'access' '{' contract_administrators+=ContractAdministrator '}'
-;
-ContractAdministrator:
-    'to' contract=[ContractDefinition] '{' methods*=Method '}'
-;
-
-Parameters:
-    'with' parameters*=Parameter['and']
-;
-Parameter:
-    value=Literal name=ID
-;
-Literal:
-    /(100|[1-9]?\d|0)%/ | INT | FLOAT | STRING
+PackageExport:
+    (package_name=ID '{' exports*=PackageExport '}') | FQN
 ;
 
 Comment: /\/\/.*$/;
