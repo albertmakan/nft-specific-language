@@ -11,14 +11,20 @@ def form_dependencies(sol_data):
 
     for function in contract_def["functions"]:
       function_dependencies = find_dependencies_for_function(sol_data, contract, function)
+      if not len(function_dependencies):
+        continue
       dependencies[contract]["functions"][function] = function_dependencies
 
     for struct in contract_def["structs"]:
       struct_dependencies = find_dependencies_for_struct(sol_data, contract, struct)
+      if not len(struct_dependencies):
+        continue
       dependencies[contract]["structs"][struct] = struct_dependencies
 
     for variable in contract_def["variables"]:
       variable_dependencies = find_dependencies_for_variables(sol_data, contract, variable)
+      if not len(variable_dependencies):
+        continue
       dependencies[contract]["variables"][variable] = variable_dependencies
 
   return dependencies
@@ -27,28 +33,41 @@ def form_dependencies(sol_data):
 # -------- Utility funkcije za formiranje zavisnosti i formiranje json iz nase strukture --------
 
 
+def sanitize_itself(name, dependencies):
+  return list(filter(lambda dependency: name != dependency, dependencies))
+
+def sanitize_empty_values(dependencies):
+  sanitized_dependencies = {}
+  for key, value in dependencies.items():
+    if not len(dependencies[key]):
+      continue
+    sanitized_dependencies[key] = value
+
+  return sanitized_dependencies
+
+
 def find_dependencies_for_struct(sol_data, contract, struct_name):
   struct_code = sol_data[contract]["structs"][struct_name]
-  return {
+  return sanitize_empty_values({
     "contracts": find_dependent_contracts(sol_data, struct_code),
-    "structs": find_dependent_structs(sol_data, contract, struct_code),
-  }
+    "structs": sanitize_itself(struct_name, find_dependent_structs(sol_data, contract, struct_code)),
+  })
 
 def find_dependencies_for_function(sol_data, contract, function_name):
   function_code = sol_data[contract]["functions"][function_name]
-  return {
+  return sanitize_empty_values({
     "contracts": find_dependent_contracts(sol_data, function_code),
     "structs": find_dependent_structs(sol_data, contract, function_code),
-    "functions": find_dependent_functions(sol_data, contract, function_code),
+    "functions": sanitize_itself(function_name, find_dependent_functions(sol_data, contract, function_code)),
     "variables": find_dependent_variables(sol_data, contract, function_code)
-  }
+  })
 
 def find_dependencies_for_variables(sol_data, contract, variable_name):
   variable_code = sol_data[contract]["variables"][variable_name]
-  return {
+  return sanitize_empty_values({
     "contracts": find_dependent_contracts(sol_data, variable_code),
     "structs": find_dependent_structs(sol_data, contract, variable_code),
-  }
+  })
 
 def find_dependent_contracts(sol_data, code):
   contract_names = find_possible_contract_name(sol_data)

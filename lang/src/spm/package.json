@@ -1,0 +1,66 @@
+{
+  "@global": {
+    "base": null,
+    "code": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.17;\n\nstruct Nemanja {\n    uint8 x;\n}\n\n\nstruct Nikola {\n    ERC721 x;\n    Nemanja n;\n}\n\nfunction approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}\n\nfunction approve3(address spender) returns (bool) {\n    return true;\n}\n\n\n\n\n\n\n\n\n}",
+    "functions": {
+      "approve3": {
+        "code": "function approve3(address spender) returns (bool) {\n    return true;\n}"
+      }
+    },
+    "structs": {
+      "Nemanja": {
+        "code": "struct Nemanja {\n    uint8 x;\n}"
+      }
+    }
+  },
+  "ERC20": {
+    "base": null,
+    "code": "contract ERC20 {\n    uint256 public totalSupply;\n    mapping(\n        address =>uint256\n    ) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n    string public name = \"Solidity by Example\";\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n    Milos public milos;\n    ERC20 public milos20CAO;\n\n    struct Milos {\n        Nemanja x;\n    }\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        balanceOf[msg.sender] -= amount;\n        approve3();\n        balanceOf[recipient] += amount;\n        emit Transfer(msg.sender, recipient, amount);\n        return true;\n    }\n\n    function approve(address spender, uint256 amount) external returns (bool) {\n        allowance[msg.sender][spender] = amount;\n        emit Approval(msg.sender, spender, amount);\n        return true;\n    }\n\n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }\n}",
+    "functions": {
+      "transfer": {
+        "code": "function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        balanceOf[msg.sender] -= amount;\n        approve3();\n        balanceOf[recipient] += amount;\n        emit Transfer(msg.sender, recipient, amount);\n        return true;\n    }",
+        "dependencies": {
+          "contracts": [
+            "ERC721"
+          ],
+          "functions": [
+            "approve3"
+          ],
+          "structs": [
+            "Milos"
+          ],
+          "variables": [
+            "balanceOf"
+          ]
+        }
+      }
+    },
+    "structs": {
+      "Milos": {
+        "code": "struct Milos {\n        Nemanja x;\n    }",
+        "dependencies": {
+          "structs": [
+            "Nemanja"
+          ]
+        }
+      }
+    },
+    "variables": {
+      "balanceOf": {
+        "code": "mapping(\n        address =>uint256\n    ) public balanceOf;"
+      }
+    }
+  },
+  "ERC721": {
+    "base": null,
+    "code": "contract ERC721 {\n\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n\n    function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }\n\n    function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }\n}",
+    "functions": {
+      "burn": {
+        "code": "function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }"
+      },
+      "mint": {
+        "code": "function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }"
+      }
+    }
+  }
+}

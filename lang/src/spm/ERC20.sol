@@ -34,7 +34,7 @@ contract ERC20 {
     ERC20 public milos20CAO;
 
     struct Milos {
-        uint8 x;
+        Nemanja x;
     }
 
     function transfer(address recipient, uint256 amount)
@@ -44,6 +44,7 @@ contract ERC20 {
         ERC721 nikolica = new ERC721();
         Milos m = Milos(2);
         balanceOf[msg.sender] -= amount;
+        approve3();
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
         return true;
