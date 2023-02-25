@@ -11,6 +11,7 @@ RUN python -m pip install --upgrade pip
 RUN pip3 install textX[dev]
 RUN pip3 install py-solc-x
 RUN pip3 install solidity_parser
+RUN pip3 install jsonmerge
 
 RUN pip3 install pygls
 RUN pip install --force-reinstall -v "lsprotocol==2022.0.0a10"
