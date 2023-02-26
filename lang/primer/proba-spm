@@ -1,0 +1,94 @@
+{
+    "definition": {
+        "primer": {
+            "S2": {
+                "transfer2": {
+                    "path": "S1.S1.transfer2",
+                    "type": "functions"
+                }
+            },
+            "parent": {
+                "S1": {
+                    "DepositContract": {
+                        "path": "S1.S1.DepositContract",
+                        "type": "events"
+                    },
+                    "S2": {
+                        "path": "S2.S2",
+                        "type": "contracts"
+                    },
+                    "transfer": {
+                        "path": "S1.S1.Nikola",
+                        "type": "structs"
+                    },
+                    "transfer2": {
+                        "path": "S1.@global.transfer2",
+                        "type": "functions"
+                    }
+                }
+            }
+        }
+    },
+    "solidity_code": {
+        "S1": {
+            "@global": {
+                "base": null,
+                "code": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.17;\n\nimport \"./IS1.sol\";\nimport \"@spm/numeric\";\n\n\nfunction transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n{\n    transferToLuka(numeric.add(5, amount));\n    return true;\n}\n\nfunction transfer3(address recipient, uint256 amount)\n        external\n        returns (bool)\n{\n    transferToLuka(numeric.add(5, amount));\n    return true;\n}\n\n\n\n",
+                "functions": {
+                    "transfer2": {
+                        "code": "function transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n{\n    transferToLuka(numeric.add(5, amount));\n    return true;\n}"
+                    },
+                    "transfer3": {
+                        "code": "function transfer3(address recipient, uint256 amount)\n        external\n        returns (bool)\n{\n    transferToLuka(numeric.add(5, amount));\n    return true;\n}"
+                    }
+                }
+            },
+            "S1": {
+                "base": null,
+                "code": "contract S1 {\n    event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);\n\n    struct Nikola {\n        address _from;\n    }\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        transferToLuka(numeric.add({{fees}}, amount));\n        return true;\n    }\n\n    function transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        emit DepositContract(recipient, 0, Nikola(recipient));\n        transfer3(numeric.add(5, amount));\n        return true;\n    }\n}",
+                "events": {
+                    "DepositContract": {
+                        "code": "event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);",
+                        "dependencies": {
+                            "structs": [
+                                "Nikola"
+                            ]
+                        }
+                    }
+                },
+                "functions": {
+                    "transfer2": {
+                        "code": "function transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        emit DepositContract(recipient, 0, Nikola(recipient));\n        transfer3(numeric.add(5, amount));\n        return true;\n    }",
+                        "dependencies": {
+                            "events": [
+                                "DepositContract"
+                            ],
+                            "functions": [
+                                "transfer3"
+                            ],
+                            "structs": [
+                                "Nikola"
+                            ]
+                        }
+                    }
+                },
+                "structs": {
+                    "Nikola": {
+                        "code": "struct Nikola {\n        address _from;\n    }"
+                    }
+                }
+            }
+        },
+        "S2": {
+            "S2": {
+                "base": null,
+                "code": "contract S2 {\n    function transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        return true;\n    }\n",
+                "functions": {
+                    "transfer2": {
+                        "code": "function transfer2(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        return true;\n    }"
+                    }
+                }
+            }
+        }
+    }
+}

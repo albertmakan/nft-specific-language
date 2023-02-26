@@ -1,5 +1,5 @@
 Script:
-    imports?=PackageImportSection
+    (imports=PackageImportSection)?
     package=PackageExportSection
 ;
 
@@ -7,13 +7,13 @@ PackageImportSection:
     'packages' '{' packages*=PackageImport '}'
 ;
 PackageImport:
-    'using' id=PackageId ('as' alias=ID)?
+    'using' id=PackageId ('as' alias=ID)? (data=/@/)?
 ;
 PackageId:
     FQN | FilePath
 ;
 
-FQN: ID ('.' ID)*;
+FQN: ID+['.'];
 
 FilePath: /\".*sol\"/;
 
@@ -22,7 +22,11 @@ PackageExportSection:
 ;
 
 PackageExport:
-    (package_name=ID '{' exports*=PackageExport '}') | FQN
+    (package_name=ID '{' exports*=PackageExport '}') | ((export_type=ExportType)? export_name=FQN ('as' export_alias=ID)?)
+;
+
+ExportType:
+    '@function' | '@struct' | '@contract' | '@event'
 ;
 
 Comment: /\/\/.*$/;

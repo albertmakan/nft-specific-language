@@ -5,7 +5,7 @@ from solidity_parser import parser
 def extract_sol_data(input, input_lines):
 
   contracts = extract_sol_contracts(input)
-  sourceUnit = parser.parse(input, loc=True)
+  sourceUnit = parser.parse(input.replace('{{', '"{').replace('}}', '}"'), loc=True)
 
   global_code = input
   for contract_code in contracts.values(): global_code = global_code.replace(contract_code, "")
@@ -24,7 +24,8 @@ def extract_sol_data(input, input_lines):
       "code": code,
       "functions": extract_sol_functions(code),
       "structs": extract_sol_structs(code),
-      "variables": state_variables
+      "events": extract_sol_events(code),
+      "variables": state_variables,
     }
 
   return contracts
@@ -57,6 +58,12 @@ def extract_sol_structs(code):
 
   return { eat_word(struct.replace("struct ", "")): struct for struct in structs }
 
+def extract_sol_events(code):
+  event_start_positions = [match.start(0) for match in re.finditer(r"event .*\(", code)]
+  events = extract_till_char(code, event_start_positions, ';')
+
+  return { eat_word(event.replace("event ", "")): event for event in events }
+
 def extract_chucks(code, positions):
   chunks = []
   for start_position in positions:
@@ -72,6 +79,19 @@ def extract_chucks(code, positions):
           break
 
         bracket_counter -= 1
+
+    chunks.append("".join(chuck_chars))
+
+  return chunks
+
+def extract_till_char(code, positions, last_char):
+  chunks = []
+  for start_position in positions:
+    chuck_chars = []
+    for char in code[start_position:-1]:
+      chuck_chars.append(char)
+      if char == last_char:
+        break
 
     chunks.append("".join(chuck_chars))
 

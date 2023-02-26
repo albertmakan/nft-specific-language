@@ -1,5 +1,6 @@
 {
     "@global": {
+        "events": {},
         "functions": {
             "approve2": {
                 "functions": [
@@ -20,6 +21,13 @@
         "variables": {}
     },
     "ERC20": {
+        "events": {
+            "DepositContract": {
+                "structs": [
+                    "Nikola"
+                ]
+            }
+        },
         "functions": {
             "approve": {
                 "variables": [
@@ -29,6 +37,9 @@
             "transfer": {
                 "contracts": [
                     "ERC721"
+                ],
+                "events": [
+                    "DepositContract"
                 ],
                 "functions": [
                     "approve3"
@@ -68,16 +79,19 @@
         }
     },
     "ERC721": {
+        "events": {},
         "functions": {},
         "structs": {},
         "variables": {}
     },
     "ERCBASE": {
+        "events": {},
         "functions": {},
         "structs": {},
         "variables": {}
     },
     "ERCINHERIT": {
+        "events": {},
         "functions": {
             "FUNCTION_INHERIT": {
                 "functions": [
@@ -102,5 +116,17 @@
                 ]
             }
         }
+    },
+    "IERC20": {
+        "events": {
+            "DepositBase": {
+                "structs": [
+                    "Nikola"
+                ]
+            }
+        },
+        "functions": {},
+        "structs": {},
+        "variables": {}
     }
 }
