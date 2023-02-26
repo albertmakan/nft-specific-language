@@ -6,7 +6,8 @@ def form_dependencies(sol_data):
     dependencies[contract] = {
       "functions": {},
       "structs": {},
-      "variables": {}
+      "variables": {},
+      "events": {}
     }
 
     for function in contract_def["functions"]:
@@ -26,6 +27,12 @@ def form_dependencies(sol_data):
       if not len(variable_dependencies):
         continue
       dependencies[contract]["variables"][variable] = variable_dependencies
+
+    for event in contract_def["events"]:
+      event_dependencies = find_dependencies_for_event(sol_data, contract, event)
+      if not len(event_dependencies):
+        continue
+      dependencies[contract]["events"][event] = event_dependencies
 
   return dependencies
 
@@ -59,7 +66,8 @@ def find_dependencies_for_function(sol_data, contract, function_name):
     "contracts": find_dependent_contracts(sol_data, function_code),
     "structs": find_dependent_structs(sol_data, contract, function_code),
     "functions": sanitize_itself(function_name, find_dependent_functions(sol_data, contract, function_code)),
-    "variables": find_dependent_variables(sol_data, contract, function_code)
+    "variables": find_dependent_variables(sol_data, contract, function_code),
+    "events": find_dependent_events(sol_data, contract, function_code)
   })
 
 def find_dependencies_for_variables(sol_data, contract, variable_name):
@@ -67,6 +75,13 @@ def find_dependencies_for_variables(sol_data, contract, variable_name):
   return sanitize_empty_values({
     "contracts": find_dependent_contracts(sol_data, variable_code),
     "structs": find_dependent_structs(sol_data, contract, variable_code),
+  })
+
+def find_dependencies_for_event(sol_data, contract, event_name):
+  event_code = sol_data[contract]["events"][event_name]
+  return sanitize_empty_values({
+    "contracts": find_dependent_contracts(sol_data, event_code),
+    "structs": find_dependent_structs(sol_data, contract, event_code),
   })
 
 def find_dependent_contracts(sol_data, code):
@@ -137,3 +152,20 @@ def find_possible_variable_names(sol_data, contract):
     variable_names.extend(sol_data[sol_data[contract]["base"]]["variables"].keys())
 
   return variable_names
+
+
+def find_dependent_events(sol_data, contract, code):
+  event_names = find_possible_event_names(sol_data, contract)
+  dependent_event = []
+  for event_name in event_names:
+    if "emit {0}".format(event_name) not in code:
+      continue
+    dependent_event.append(event_name)
+  return dependent_event
+
+def find_possible_event_names(sol_data, contract):
+  event_names = list(sol_data[contract]["events"].keys())
+  if sol_data[contract]["base"] is not None:
+    event_names.extend(sol_data[sol_data[contract]["base"]]["events"].keys())
+
+  return event_names

@@ -21,7 +21,13 @@ function approve3(address spender) returns (bool) {
     return true;
 }
 
+contract IERC20 {
+    event DepositBase(address indexed _from, bytes32 indexed _id, Nikola _value);
+}
+
 contract ERC20 {
+    event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);
+
     uint256 public totalSupply;
     mapping(
         address =>uint256
@@ -46,7 +52,8 @@ contract ERC20 {
         balanceOf[msg.sender] -= amount;
         approve3();
         balanceOf[recipient] += amount;
-        emit Transfer(msg.sender, recipient, amount);
+        emit DepositContract(msg.sender, recipient, amount);
+
         return true;
     }
 

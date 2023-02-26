@@ -9,6 +9,7 @@ def adapt_sol_data_for_merge(sol_data):
             "functions": { key: { "code": value } for key, value in contract_data["functions"].items() },
             "structs": { key: { "code": value } for key, value in contract_data["structs"].items() },
             "variables": { key: { "code": value } for key, value in contract_data["variables"].items() },
+            "events": { key: { "code": value } for key, value in contract_data["events"].items() },
         }
     
     return adapted_sol_data
@@ -19,7 +20,8 @@ def adapt_dependencies_for_merge(dependencies):
         adapted_dependencies[contract] = {
             "structs": {},
             "functions": {},
-            "variables": {}
+            "variables": {},
+            "events": {}
         }
 
         for sol_type, sol_type_data in contract_data.items():
