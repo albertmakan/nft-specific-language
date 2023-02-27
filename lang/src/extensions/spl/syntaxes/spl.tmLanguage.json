@@ -1,0 +1,258 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SPL",
+  "patterns": [
+    {
+      "include": "#expression"
+    }
+  ],
+  "repository": {
+    "expression": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#packages-block"
+        },
+        {
+          "include": "#contract-expression"
+        },
+        {
+          "include": "#administration-expression"
+        },
+        {
+          "include": "#keywords"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.spl"
+            }
+          },
+          "match": "(//).*$",
+          "name": "comment.line.double-slash.spl"
+        }
+      ]
+    },
+  
+    "packages-block": {
+      "begin": "\\bpackages\\b",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "keyword.control.spl" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.brackets.curly.spl" }
+      },
+      "name": "meta.structure.packages.block.spl",
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#using-expression" }
+      ]
+    },
+    "using-expression": {
+      "begin": "\\b(using)\\b",
+      "beginCaptures": {
+        "0": { "name": "keyword.control.import.spl" }
+      },
+      "end": "$",
+      "name": "entity.name.function.spl",
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#alias-expression" }
+      ]
+    },
+    "alias-expression": {
+      "begin": "\\b(as)\\b",
+      "beginCaptures": {
+        "0": { "name": "keyword.control.import.spl" }
+      },
+      "end": "$",
+      "name": "entity.name.function.spl",
+      "patterns": [
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "contract-expression": {
+      "patterns": [
+        {
+          "begin": "\\b(contract)\\b",
+          "beginCaptures": {
+            "0": { "name": "keyword.control" }
+          },
+          "end": "(?<=})",
+          "patterns": [
+            {
+              "begin": "\\w+",
+              "end": "\\b(combines)\\b",
+              "beginCaptures": {
+                "0": { "name": "entity.name.type.struct" }
+              },
+              "endCaptures": {
+                "0": { "name": "keyword.control" }
+              }
+            },
+            {
+              "include": "#contract-definition"
+            }
+          ]
+        }
+      ]
+    },
+    "contract-definition": {
+      "patterns": [
+        {
+          "begin": "\\{",
+          "end": "\\}",
+          "name": "meta.definition.contract",
+          "patterns": [
+            { "include": "#common-types" },
+            { "include": "#contract-value" }
+          ]
+        }
+      ]
+    },
+    "contract-value": {
+      "begin": "([^\\s]+)",
+      "end": "\\n",
+      "beginCaptures": {
+        "0": { "name": "entity.name.function" }
+      },
+      "patterns": [{ "include": "#common-types" }]
+    },
+    "administration-expression": {
+      "patterns": [
+        {
+          "begin": "\\b(administration)\\b",
+          "beginCaptures": {
+            "0": { "name": "keyword.control" }
+          },
+          "end": "\\}",
+          "name": "meta.administration.block",
+          "patterns": [
+            {
+              "include": "#managed-by-block"
+            },
+            {
+              "include": "#extended-by-block"
+            }
+          ]
+        }
+      ]
+    },
+    "managed-by-block": {
+      "begin": "\\b(managed\\s+by)\\b",
+      "beginCaptures": {
+        "0": {
+          "name": "constant.character"
+        }
+      },
+      "end": "\\}",
+      "patterns": [
+        { "include": "#to-block" },
+        { "include": "#keywords" },
+        { "include": "#strings" }
+      ]
+    },
+    "extended-by-block": {
+      "begin": "\\b(extended\\s+by)\\b",
+
+      "beginCaptures": {
+        "0": {
+          "name": "constant.character"
+        },
+        "1": {
+          "name": "markup.italic"
+        }
+      },
+      "end": "\\}",
+      "patterns": [
+        { "include": "#to-block1" },
+        { "include": "#keywords" },
+        { "include": "#strings" }
+      ]
+    },
+    "to-block1": {
+      "begin": "(\\b)(to)(\\s+)(\\w+)",
+      "beginCaptures": {
+        "0": {
+          "name": "constant.character"
+        },
+        "1": { "name": "markup.italic" },
+        "2": {
+          "name": "keyword.control"
+        }
+      },
+      "end": "(?<=})",
+      "name": "meta.to.block.spl",
+      "patterns": [
+        {
+          "include": "#contract-definition"
+        }
+      ]
+    },
+    "to-block": {
+      "begin": "\\b(to)\\b",
+      "beginCaptures": {
+        "0": {
+          "name": "constant.character"
+        }
+      },
+      "end": "(?<=})",
+      "name": "meta.to.block.spl",
+      "patterns": [
+        { "include": "#comments" },
+        {
+          "include": "#contract-definition"
+        },
+        {
+          "match": "\\w+\\b",
+          "name": "entity.name.type.struct"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.spl",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.spl",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric",
+          "match": "[0-9.]+"
+        }
+      ]
+    },
+    "keywords": {
+      "match": "\\b(with|having|and)\\b",
+      "name": "constant.character"
+    },
+    "common-types": {
+      "patterns": [
+        { "include": "#comments" },
+        {
+          "include": "#strings"
+        },
+        { "include": "#keywords" }
+      ]
+    }
+  },
+  "scopeName": "source.spl"
+}
