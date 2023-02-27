@@ -1,5 +1,5 @@
 import json, time
-from merge import merge
+from merge import merge_data_with_dependencies
 from sol_code_extractions import extract_sol_data 
 from sol_dependency_analysers import form_dependencies
 # from package_generator import find_all_exported_items, generate_package
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
   sol_data = extract_sol_data(input, input_lines)
   dependencies = form_dependencies(sol_data)
-  merged_sol_data = merge(sol_data, dependencies)
+  merged_sol_data = merge_data_with_dependencies(sol_data, dependencies)
   # exported_items = find_all_exported_items(merged_sol_data, ['ERC20.transfer'])
   # package = generate_package(merged_sol_data, exported_items)
 

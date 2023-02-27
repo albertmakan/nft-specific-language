@@ -57,7 +57,7 @@ contract ERC20 {
         return true;
     }
 
-    function approve(address spender, uint256 amount) external returns (bool) {
+    function approve(address spender, uint256 amount) external costs returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
@@ -74,6 +74,12 @@ contract ERC20 {
         emit Transfer(sender, recipient, amount);
         return true;
     }
+
+     modifier costs(uint price) {
+      if (msg.value >= price) {
+         _;
+      }
+   }
 }
 
 contract ERC721 {

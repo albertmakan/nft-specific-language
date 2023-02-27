@@ -1,10 +1,11 @@
+import os
 from typing import List
 from model import Construct, PackageExport, PackageExportSection, PackageImportSection, PackageImport, Script
 from os import path
 
 from sol_code_extractions import extract_sol_data
 from sol_dependency_analysers import form_dependencies
-from merge import merge
+from merge import merge_data_with_dependencies, merge_data
 
 
 solidity_files = { }
@@ -27,18 +28,37 @@ def _compute_pack_alias(pack: PackageImport):
 
 def package_import_processor(package_import: PackageImport):
 
-    isFileImport = _is_file_import(package_import.id)
-    if isFileImport:
-        _check_file_path(package_import.id)
+    sol_data = {}
+    load_queue = [package_import.id]
 
-        input, input_lines = _load_solidity_file(package_import.id)
+    while len(load_queue):
+        file_path = load_queue.pop()
+        isFileImport = _is_file_import(file_path)
+        if isFileImport:
+            _check_file_path(file_path)
 
-        sol_data = extract_sol_data(input, input_lines)
-        dependencies = form_dependencies(sol_data)
-        merged_sol_data = merge(sol_data, dependencies)
+            input, input_lines = _load_solidity_file(file_path)
 
-        solidity_files[package_import.alias] = merged_sol_data
-        package_import.data = merged_sol_data
+            file_sol_data = extract_sol_data(input, input_lines)
+            sol_data = merge_data(sol_data, file_sol_data)
+
+            parent_file_path = os.path.dirname(file_path.replace('"', ''))
+            for imported_file in sol_data['@global']['imports']:
+                if _is_file_import(imported_file):
+                    load_queue.append('"{0}"'.format(os.path.join(parent_file_path, imported_file.replace('"', ''))))
+
+    # this is to remove interfaces
+    for contract_data in sol_data.values():
+        if contract_data['base'] and contract_data['base'] not in sol_data:
+            contract_data['base'] = None
+
+
+
+    dependencies = form_dependencies(sol_data)
+    merged_sol_data = merge_data_with_dependencies(sol_data, dependencies)
+
+    solidity_files[package_import.alias] = merged_sol_data
+    package_import.data = merged_sol_data
 
 
 def _is_file_import(id):
@@ -88,8 +108,12 @@ def _compute_exported_name(export: PackageExport):
     return export.export_name.split('.')[-1]
 
 def package_export_processor(export: PackageExport):
+    if export.export_name is None and len(export.exports) == 0:
+        raise Exception(f"Every namespace must have at least one export")
+    
     if export.package_name:
         return
+    
     if not export.export_type:
         export.export_type = '@function'
 
@@ -101,6 +125,9 @@ def package_export_processor(export: PackageExport):
     if len(export_name_tokens) != 3 and export.export_type == '@event':
         raise Exception(f"Export for event must be PackageAlias.ContractName.EventName")
 
+    if len(export_name_tokens) != 3 and export.export_type == '@modifier':
+        raise Exception(f"Export for modifier must be PackageAlias.ContractName.ModifierName")
+
     if len(export_name_tokens) not in [2, 3]:
         raise Exception(f"Export must be PackageAlias[.ContractName].SolidityTypeName")
     
@@ -108,7 +135,7 @@ def package_export_processor(export: PackageExport):
 
     if export.export_type == '@contract':
         _check_if_contract_exists(export)
-    if export.export_type in ['@function', '@struct', '@event']:
+    if export.export_type in ['@function', '@struct', '@event', '@modifier']:
         _check_if_non_contract_exists(export)
 
 
@@ -134,7 +161,6 @@ def _check_if_package_is_imported(export: PackageExport, package_alias: str):
     pack = next((package for package in root.imports.packages if package.alias == package_alias), None)
     if not pack:
         raise Exception(f"Package '{package_alias}' not found")
-    # method.name = pack.id + (('.' + p[-1]) if len(p)>1 else '')
 
 def _check_if_contract_exists_in_package(package_alias: str, contract_name: str):
     if contract_name not in solidity_files[package_alias]:
@@ -142,8 +168,14 @@ def _check_if_contract_exists_in_package(package_alias: str, contract_name: str)
 
 def _check_if_solidity_type_exists_in_package(package_alias: str, contract_name: str, export_type: str, export_name: str):
     export_type = export_type.replace('@', '') + 's'
-    if export_name not in solidity_files[package_alias][contract_name][export_type]:
-        raise Exception(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package")
+    current_contract_name = contract_name
+    while current_contract_name is not None:
+
+        if export_name in solidity_files[package_alias][current_contract_name][export_type]:
+            return
+        
+        current_contract_name = solidity_files[package_alias][current_contract_name]['base']
+    raise Exception(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package")
 
 
 

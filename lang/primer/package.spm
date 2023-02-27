@@ -4,23 +4,25 @@ packages {
   // using custom.equity.sales as sales
   
   using "./S1.sol" as S1
-  using "./S2.sol" as S2
+  // using "./S2.sol" as S2
 }
+
+// S1.transfer2
+// S1.transfer
+// S1.DepositContract
 
 package primer {
     parent { 
         S1 {
-            S1.transfer2
+            // S1.transfer2
+            S1.S1.transfer2 as transferFromContract
+            @modifier S1.S1.costs as costic
             @struct S1.S1.Nikola as transfer
             @event S1.S1.DepositContract
-            @contract S2.S2
+            // @contract S1.S1
 
         }
     }
-    S2 {
-        // S2.transfer2
-        // S2.transfer1
-        S1.S1.transfer2
-    }
+   
     // S2.parent
 }
