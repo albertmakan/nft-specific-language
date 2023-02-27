@@ -1,0 +1,25 @@
+{
+  "name": "spm",
+  "displayName": "spm",
+  "description": "SPM - Language Support",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "spm",
+      "aliases": ["spm", "spm"],
+      "extensions": [".spm"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "spm",
+      "scopeName": "source.spm",
+      "path": "./syntaxes/spm.tmLanguage.json"
+    }]
+  }
+}
