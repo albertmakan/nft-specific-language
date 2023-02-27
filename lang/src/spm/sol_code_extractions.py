@@ -1,4 +1,3 @@
-
 import re
 from solidity_parser import parser
 
@@ -23,10 +22,14 @@ def extract_sol_data(input, input_lines):
       "base": base,
       "code": code,
       "functions": extract_sol_functions(code),
+      "modifiers": extract_sol_modifiers(code),
       "structs": extract_sol_structs(code),
       "events": extract_sol_events(code),
       "variables": state_variables,
     }
+
+    if contract == '@global':
+      contracts[contract]["imports"] = extract_imports(sourceUnit)
 
   return contracts
 
@@ -51,6 +54,12 @@ def extract_sol_functions(code):
   functions = extract_chucks(code, function_start_positions)
 
   return { eat_word(function.replace("function ", "")): function for function in functions }
+
+def extract_sol_modifiers(code):
+  modifiers_start_positions = [match.start(0) for match in re.finditer(r"modifier .*", code)]
+  modifiers = extract_chucks(code, modifiers_start_positions)
+
+  return { eat_word(modifier.replace("modifier ", "")): modifier for modifier in modifiers }
 
 def extract_sol_structs(code):
   struct_start_positions = [match.start(0) for match in re.finditer(r"struct .*\{", code)]
@@ -135,3 +144,13 @@ def extract_base_contract(contractAST):
     return None
   
   return contractAST["baseContracts"][0]["baseName"]["namePath"]
+
+def extract_imports(ast):
+  imports = []
+  for node in ast["children"]:
+    if node["type"] != "ImportDirective":
+      continue
+
+    imports.append('"{0}"'.format(node["path"]))
+
+  return imports

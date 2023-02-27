@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-interface IS1 {
-    function transfer(address recipient, uint256 amount) external returns (bool);
+contract IS12 {
+    struct Nikola {
+        address _from;
+    }
+
+    function MILOSPANIC() {
+        return false;
+    }
+
+}
+
+contract IS1 is IS12 {
+   struct Nemanja {
+        address _from;
+    }
 }

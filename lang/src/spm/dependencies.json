@@ -8,6 +8,7 @@
                 ]
             }
         },
+        "modifiers": {},
         "structs": {
             "Nikola": {
                 "contracts": [
@@ -30,6 +31,9 @@
         },
         "functions": {
             "approve": {
+                "modifiers": [
+                    "costs"
+                ],
                 "variables": [
                     "allowance"
                 ]
@@ -58,6 +62,7 @@
                 ]
             }
         },
+        "modifiers": {},
         "structs": {
             "Milos": {
                 "structs": [
@@ -81,12 +86,14 @@
     "ERC721": {
         "events": {},
         "functions": {},
+        "modifiers": {},
         "structs": {},
         "variables": {}
     },
     "ERCBASE": {
         "events": {},
         "functions": {},
+        "modifiers": {},
         "structs": {},
         "variables": {}
     },
@@ -102,6 +109,7 @@
                 ]
             }
         },
+        "modifiers": {},
         "structs": {
             "STRUCT_INHERIT": {
                 "structs": [
@@ -126,6 +134,7 @@
             }
         },
         "functions": {},
+        "modifiers": {},
         "structs": {},
         "variables": {}
     }

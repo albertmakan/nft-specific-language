@@ -7,7 +7,8 @@ def form_dependencies(sol_data):
       "functions": {},
       "structs": {},
       "variables": {},
-      "events": {}
+      "events": {},
+      "modifiers": {}
     }
 
     for function in contract_def["functions"]:
@@ -33,6 +34,13 @@ def form_dependencies(sol_data):
       if not len(event_dependencies):
         continue
       dependencies[contract]["events"][event] = event_dependencies
+
+    for modifier in contract_def["modifiers"]:
+      modifier_dependencies = find_dependencies_for_modifier(sol_data, contract, modifier)
+      if not len(modifier_dependencies):
+        continue
+      dependencies[contract]["modifiers"][modifier] = modifier_dependencies
+
 
   return dependencies
 
@@ -67,7 +75,8 @@ def find_dependencies_for_function(sol_data, contract, function_name):
     "structs": find_dependent_structs(sol_data, contract, function_code),
     "functions": sanitize_itself(function_name, find_dependent_functions(sol_data, contract, function_code)),
     "variables": find_dependent_variables(sol_data, contract, function_code),
-    "events": find_dependent_events(sol_data, contract, function_code)
+    "events": find_dependent_events(sol_data, contract, function_code),
+    "modifiers": find_dependent_modifiers(sol_data, contract, function_code)
   })
 
 def find_dependencies_for_variables(sol_data, contract, variable_name):
@@ -82,6 +91,16 @@ def find_dependencies_for_event(sol_data, contract, event_name):
   return sanitize_empty_values({
     "contracts": find_dependent_contracts(sol_data, event_code),
     "structs": find_dependent_structs(sol_data, contract, event_code),
+  })
+
+def find_dependencies_for_modifier(sol_data, contract, modifier_name):
+  modifier_code = sol_data[contract]["modifiers"][modifier_name]
+  return sanitize_empty_values({
+    "contracts": find_dependent_contracts(sol_data, modifier_code),
+    "structs": find_dependent_structs(sol_data, contract, modifier_code),
+    "functions": sanitize_itself(modifier_name, find_dependent_functions(sol_data, contract, modifier_code)),
+    "variables": find_dependent_variables(sol_data, contract, modifier_code),
+    "events": find_dependent_events(sol_data, contract, modifier_code)
   })
 
 def find_dependent_contracts(sol_data, code):
@@ -110,8 +129,11 @@ def find_possible_struct_names(sol_data, contract):
   struct_names = list(sol_data[contract]["structs"].keys())
   if contract != "@global":
     struct_names.extend(sol_data["@global"]["structs"].keys())
-  if sol_data[contract]["base"] is not None:
+
+  contracts_chain = find_contract_chain(contract, sol_data)
+  for contract in contracts_chain:
     struct_names.extend(sol_data[sol_data[contract]["base"]]["structs"].keys())
+
   return struct_names
 
 
@@ -128,7 +150,9 @@ def find_possible_function_names(sol_data, contract):
   function_names = list(sol_data[contract]["functions"].keys())
   if contract != "@global":
     function_names.extend(sol_data["@global"]["functions"].keys())
-  if sol_data[contract]["base"] is not None:
+
+  contracts_chain = find_contract_chain(contract, sol_data)
+  for contract in contracts_chain:
     function_names.extend(sol_data[sol_data[contract]["base"]]["functions"].keys())
 
   return function_names
@@ -148,7 +172,9 @@ def find_possible_variable_names(sol_data, contract):
     return []  
   
   variable_names = list(sol_data[contract]["variables"].keys())
-  if sol_data[contract]["base"] is not None:
+
+  contracts_chain = find_contract_chain(contract, sol_data)
+  for contract in contracts_chain:
     variable_names.extend(sol_data[sol_data[contract]["base"]]["variables"].keys())
 
   return variable_names
@@ -165,7 +191,37 @@ def find_dependent_events(sol_data, contract, code):
 
 def find_possible_event_names(sol_data, contract):
   event_names = list(sol_data[contract]["events"].keys())
-  if sol_data[contract]["base"] is not None:
+
+  contracts_chain = find_contract_chain(contract, sol_data)
+  for contract in contracts_chain:
     event_names.extend(sol_data[sol_data[contract]["base"]]["events"].keys())
 
   return event_names
+
+
+def find_dependent_modifiers(sol_data, contract, code):
+  modifier_names = find_possible_modifier_names(sol_data, contract)
+  dependent_modifiers = []
+  for modifier_name in modifier_names:
+    if "{0} ".format(modifier_name) not in code and "{0}\n".format(modifier_name) not in code:
+      continue
+    dependent_modifiers.append(modifier_name)
+  return dependent_modifiers
+
+def find_possible_modifier_names(sol_data, contract):
+  modifier_names = list(sol_data[contract]["modifiers"].keys())
+
+  contracts_chain = find_contract_chain(contract, sol_data)
+  for contract in contracts_chain:
+    modifier_names.extend(sol_data[sol_data[contract]["base"]]["modifiers"].keys())
+
+  return modifier_names
+
+
+def find_contract_chain(contract, sol_data):
+  contracts = []
+  current_contract = contract
+  while sol_data[current_contract]["base"]:
+    contracts.append(current_contract)
+    current_contract = sol_data[current_contract]["base"]
+  return contracts
