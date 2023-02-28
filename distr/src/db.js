@@ -1,8 +1,19 @@
 import * as IPFS from "ipfs";
 import { HttpGateway } from "ipfs-http-gateway";
 import OrbitDB from "orbit-db";
-// import * as PeerId from "@libp2p/peer-id";
 import express from "express";
+import z from "zod";
+import { addMonths } from "date-fns";
+import { testVersion, compareVersions } from "./utils.js";
+
+// TODO: implement clustering logic
+// import * as PeerId from "@libp2p/peer-id";
+// peers need to be connected in order to keep a constant sync
+// await ipfs.swarm.connect(
+//   PeerId.peerIdFromString(
+//     "12D3KooWHbeEMf8iymRxkWmbV7MKYsmvqcjdnfaKH99BW9NjcqWT"
+//   )
+// );
 
 const app = express();
 const port = 3000;
@@ -35,16 +46,8 @@ const orbitdb = await OrbitDB.createInstance(ipfs, {
   directory: "./spm_db/docstore",
 });
 
-// TODO: implement clustering logic
-// peers need to be connected in order to keep a constant sync
-// await ipfs.swarm.connect(
-//   PeerId.peerIdFromString(
-//     "12D3KooWHbeEMf8iymRxkWmbV7MKYsmvqcjdnfaKH99BW9NjcqWT"
-//   )
-// );
-
 // Create / Open a database
-const db = await orbitdb.docs("spm:packages", {
+const latestVersionsDb = await orbitdb.docs("spm:packages", {
   indexBy: "name",
   accessController: {
     write: [
@@ -55,10 +58,26 @@ const db = await orbitdb.docs("spm:packages", {
   overwrite: true,
   replicate: true,
 });
-await db.load();
+await latestVersionsDb.load();
+
+const allVersionsDb = await orbitdb.docs("spm:packages-all", {
+  indexBy: "tag",
+  accessController: {
+    write: [
+      // Give access to ourselves
+      orbitdb.identity.id,
+    ],
+  },
+  overwrite: true,
+  replicate: true,
+});
+await allVersionsDb.load();
 
 // Listen for updates from peers
-db.events.on("replicated", async (address) => {
+latestVersionsDb.events.on("replicated", async (address) => {
+  console.log("REPL_DONE: ", address);
+});
+allVersionsDb.events.on("replicated", async (address) => {
   console.log("REPL_DONE: ", address);
 });
 
@@ -66,8 +85,8 @@ db.events.on("replicated", async (address) => {
 
 app.get("/api/db", async (req, res) => {
   res.send({
-    name: db.dbname,
-    address: db.address.toString(),
+    name: latestVersionsDb.dbname,
+    address: latestVersionsDb.address.toString(),
   });
 });
 
@@ -79,33 +98,144 @@ app.get("/api/peer", async (req, res) => {
 });
 
 app.get("/api/spm/search/:term", async (req, res) => {
-  const result = await db.get(req.params.term);
+  const result = await latestVersionsDb.get(req.params.term);
 
   res.send(result);
 });
 
-app.post("/api/spm/packages", async (req, res) => {
-  // TODO: implement validation
-  // TODO: check signatures if package already exists (if last renewed < 3 months)
-  await db.put(req.body);
-  res.sendStatus(200);
+app.get("/api/spm/package/:name", async (req, res) => {
+  const result = await allVersionsDb.get(`${req.params.name}:`);
+
+  res.send(result);
 });
 
-app.post("/api/spm/packages/:name/renew", async (req, res) => {
-  // TODO: implement validation
-  // TODO: check signatures
-  // TODO: package can be renewed by the same signature after 2 months, and taken over by others after 3 months
-  // Note: renewing means keeping the same signature for additional 3 months
-  // Note: taking over means placing a new signature for that package name - IT DOES NOT mean replacing the package
-  // Note: packages can't be deleted!
-  await db.put(req.body);
-  res.sendStatus(200);
+const createPackageSchema = z.object({
+  name: z.string().min(3, "Must be at least 3 characters long."),
+  version: z
+    .string()
+    .min(5, "Must be at least 5 characters long.")
+    .refine((version) => {
+      return testVersion(version);
+    }),
+  author: z.string().min(4, "Must be at least 4 characters long."),
+  location: z.object({
+    type: z.enum(["NPM", "GitHub", "IPFS"]),
+    url: z.string().url("Must be a valid URL."),
+  }),
+  pubkey: z.string().min(8, "Public Key must be at least 8 characters long."),
+  signature: z
+    .string()
+    .min(8, "Signature must be at least 8 characters long.")
+    .optional(),
+  // meta info about the functionalities provided by the package
+  meta: z.object().optional(),
+  readme: z.string().optional(),
 });
+
+app.post("/api/spm/packages", async (req, res) => {
+  try {
+    const threeMonthsLater = addMonths(new Date(), 3);
+
+    const parsedPackage = createPackageSchema.parse(req.body);
+    const existingPackages = await latestVersionsDb.get(parsedPackage.name);
+    const allExistingVersions = await allVersionsDb.get(
+      parsedPackage.name + ":"
+    );
+    const sameVersionExists = allExistingVersions.find(
+      (x) =>
+        x.name === parsedPackage.name && x.version === parsedPackage.version
+    );
+    if (!!sameVersionExists) {
+      res.status(400).send({ message: "Package version already exists" });
+      return;
+    }
+
+    const existingPackage = existingPackages.find(
+      (x) => x.name === parsedPackage.name
+    );
+
+    if (!parsedPackage.pubkey) {
+      res
+        .status(400)
+        .send({ message: "Public key must be provided when publishing." });
+      return;
+    }
+    if (
+      !!existingPackage &&
+      parsedPackage.pubkey !== existingPackage.pubkey &&
+      new Date(x.expirationDate).getTime() > threeMonthsLater.getTime()
+    ) {
+      res.status(400).send({ message: "Package is reserved for 3 months." });
+      return;
+    } else if (
+      !!existingPackage &&
+      parsedPackage.pubkey !== existingPackage.pubkey
+    ) {
+      res
+        .status(400)
+        .send({ message: "Public key must match the previous one." });
+      return;
+    }
+
+    if (!!existingPackage) {
+      if (!parsedPackage.signature) {
+        res.status(400).send({
+          message:
+            "Signature must be provided when publishing a new version of the package. Signature: privkey(name + author + version).",
+        });
+        return;
+      }
+      // TODO validate signature
+      const signatureValid = true;
+      if (!signatureValid) {
+        res.status(400).send({
+          message:
+            "Invalid signature for the provided package info. Signature: privkey(name + author + version).",
+        });
+        return;
+      }
+      if (compareVersions(existingPackage.version, parsedPackage.version)) {
+        res.status(400).send({
+          message:
+            "Package version must be greater than the latest existing one.",
+        });
+        return;
+      }
+    }
+    await latestVersionsDb.put({
+      ...parsedPackage,
+      expirationDate: threeMonthsLater.toISOString(),
+    });
+    await allVersionsDb.put({
+      ...parsedPackage,
+      tag: `${parsedPackage.name}:${parsedPackage.version}`,
+      expirationDate: threeMonthsLater.toISOString(),
+    });
+
+    res.status(200).send(parsedPackage);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: error.message });
+  }
+});
+
+// Note: package can be renewed by publishing a new version with the same content
+
+// app.post("/api/spm/packages/:name/renew", async (req, res) => {
+//   // TODO: implement validation
+//   // TODO: check signatures
+//   // TODO: package can be renewed by the same signature after 2 months, and taken over by others after 3 months
+//   // Note: renewing means keeping the same signature for additional 3 months
+//   // Note: taking over means placing a new pubkey for that package name - IT DOES NOT mean replacing the package
+//   // Note: packages can't be deleted!
+//   await latestVersionsDb.put(req.body);
+//   res.sendStatus(200);
+// });
 
 process.on("SIGTERM", async (error) => {
   try {
     await ipfsGateway.stop();
-    await db.close();
+    await latestVersionsDb.close();
     await orbitdb.stop();
     await ipfs.stop();
   } catch (error) {
@@ -117,7 +247,7 @@ process.on("SIGTERM", async (error) => {
 process.on("SIGINT", async (error) => {
   try {
     await ipfsGateway.stop();
-    await db.close();
+    await latestVersionsDb.close();
     await orbitdb.stop();
     await ipfs.stop();
   } catch (error) {
