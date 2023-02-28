@@ -1,82 +1,21 @@
 {
     "definition": {
-        "primer": {
+        "primer2": {
             "parent": {
                 "S1": {
-                    "DepositContract": {
-                        "path": "S1.S1.DepositContract",
-                        "type": "events"
-                    },
                     "costic": {
-                        "path": "S1.S1.costs",
+                        "path": "parent+S2.S1.costs",
                         "type": "modifiers"
-                    },
-                    "transfer": {
-                        "path": "S1.S1.Nikola",
-                        "type": "structs"
-                    },
-                    "transferFromContract": {
-                        "path": "S1.S1.transfer2",
-                        "type": "functions"
                     }
                 }
             }
         }
     },
     "solidity_code": {
-        "S1": {
-            "@global": {
-                "base": null,
-                "code": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.17;\n\n\n",
-                "functions": {
-                    "transfer3": {
-                        "code": "function transfer3(address recipient, uint256 amount)\n        external\n        returns (bool)\n{\n    transferToLuka(numeric.add(5, amount));\n    return true;\n}"
-                    }
-                }
-            },
-            "IS1": {
-                "base": "IS12",
-                "code": "contract IS1 is IS12 {\n   struct Nemanja {\n        address _from;\n    }\n}"
-            },
-            "IS12": {
-                "base": "nezz",
-                "code": "contract IS12 is nezz {\n    struct Nikola {\n        address _from;\n    }\n\n    function MILOSPANIC() {\n        return false;\n    }\n\n}",
-                "functions": {
-                    "MILOSPANIC": {
-                        "code": "function MILOSPANIC() {\n        return false;\n    }"
-                    }
-                },
-                "structs": {
-                    "Nikola": {
-                        "code": "struct Nikola {\n        address _from;\n    }"
-                    }
-                }
-            },
+        "parent+S2": {
             "S1": {
                 "base": "IS1",
                 "code": "contract S1 is IS1 {\n    event DepositContract(address indexed _from, bytes32 indexed _id, uint104 _value);\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        transferToLuka(numeric.add({{fees}}, amount));\n        return true;\n    }\n\n    function transfer2(address recipient, uint256 amount)\n        costs\n        returns (bool)\n    {\n        MILOSPANIC();\n        emit DepositContract(recipient, 0, 0);\n        transfer3(numeric.add(5, amount));\n        return true;\n    }\n\n    modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }\n}",
-                "events": {
-                    "DepositContract": {
-                        "code": "event DepositContract(address indexed _from, bytes32 indexed _id, uint104 _value);"
-                    }
-                },
-                "functions": {
-                    "transfer2": {
-                        "code": "function transfer2(address recipient, uint256 amount)\n        costs\n        returns (bool)\n    {\n        MILOSPANIC();\n        emit DepositContract(recipient, 0, 0);\n        transfer3(numeric.add(5, amount));\n        return true;\n    }",
-                        "dependencies": {
-                            "events": [
-                                "DepositContract"
-                            ],
-                            "functions": [
-                                "transfer3",
-                                "MILOSPANIC"
-                            ],
-                            "modifiers": [
-                                "costs"
-                            ]
-                        }
-                    }
-                },
                 "modifiers": {
                     "costs": {
                         "code": "modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }"
