@@ -110,23 +110,28 @@ app.get("/api/spm/package/:name", async (req, res) => {
 });
 
 const createPackageSchema = z.object({
-  name: z.string().min(3, "Must be at least 3 characters long."),
+  name: z
+    .string("Name is required")
+    .min(3, "Name must be at least 3 characters long."),
   version: z
-    .string()
-    .min(5, "Must be at least 5 characters long.")
+    .string("Version is required.")
+    .min(5, "Version must be at least 5 characters long.")
     .refine((version) => {
       return testVersion(version);
     }),
-  author: z.string().min(4, "Must be at least 4 characters long."),
-  location: z.object({
-    type: z.enum(["NPM", "GitHub", "IPFS"]),
-    url: z.string().url("Must be a valid URL."),
-  }),
-  pubkey: z.string().min(8, "Public Key must be at least 8 characters long."),
+  author: z
+    .string("Author is required.")
+    .min(4, "Author must be at least 4 characters long."),
+  pubkey: z
+    .string("Public key is required.")
+    .min(8, "Public Key must be at least 8 characters long."),
   signature: z
     .string()
     .min(8, "Signature must be at least 8 characters long.")
     .optional(),
+  content: z
+    .string("Package content is required.")
+    .min(10, "Package content is mandatory."),
   // meta info about the functionalities provided by the package
   meta: z.object().optional(),
   readme: z.string().optional(),
@@ -202,13 +207,18 @@ app.post("/api/spm/packages", async (req, res) => {
         return;
       }
     }
+
+    const result = await ipfs.add(parsedPackage.content);
+
     await latestVersionsDb.put({
       ...parsedPackage,
+      cid: result.cid.toString(),
       expirationDate: threeMonthsLater.toISOString(),
     });
     await allVersionsDb.put({
       ...parsedPackage,
       tag: `${parsedPackage.name}:${parsedPackage.version}`,
+      cid: result.cid.toString(),
       expirationDate: threeMonthsLater.toISOString(),
     });
 
@@ -218,19 +228,6 @@ app.post("/api/spm/packages", async (req, res) => {
     res.status(400).send({ message: error.message });
   }
 });
-
-// Note: package can be renewed by publishing a new version with the same content
-
-// app.post("/api/spm/packages/:name/renew", async (req, res) => {
-//   // TODO: implement validation
-//   // TODO: check signatures
-//   // TODO: package can be renewed by the same signature after 2 months, and taken over by others after 3 months
-//   // Note: renewing means keeping the same signature for additional 3 months
-//   // Note: taking over means placing a new pubkey for that package name - IT DOES NOT mean replacing the package
-//   // Note: packages can't be deleted!
-//   await latestVersionsDb.put(req.body);
-//   res.sendStatus(200);
-// });
 
 process.on("SIGTERM", async (error) => {
   try {
