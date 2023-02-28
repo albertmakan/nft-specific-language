@@ -210,16 +210,17 @@ app.post("/api/spm/packages", async (req, res) => {
 
     const result = await ipfs.add(parsedPackage.content);
 
-    await latestVersionsDb.put({
+    const packageToStore = {
       ...parsedPackage,
       cid: result.cid.toString(),
       expirationDate: threeMonthsLater.toISOString(),
-    });
+    };
+    delete packageToStore.content;
+
+    await latestVersionsDb.put(packageToStore);
     await allVersionsDb.put({
-      ...parsedPackage,
+      ...packageToStore,
       tag: `${parsedPackage.name}:${parsedPackage.version}`,
-      cid: result.cid.toString(),
-      expirationDate: threeMonthsLater.toISOString(),
     });
 
     res.status(200).send(parsedPackage);
