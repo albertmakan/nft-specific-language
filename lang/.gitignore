@@ -163,3 +163,4 @@ cython_debug/
 
 #NPM
 node_modules/
+**/*/node_modules
