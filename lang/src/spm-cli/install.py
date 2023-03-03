@@ -1,25 +1,7 @@
-import json
-import os
-
-import requests
-
-PACKAGE_JSON_PATH = "package.json"
-SPM_PACKAGES_PATH = ".spm_packages"
-SEARCH_INDEX_API_URL = "http://localhost:3000/api"
-IPFS_NODE_URL = "http://localhost:9090/ipfs"
-
-# Package Json utilities
-
-def load_package_json():
-  if not os.path.isfile(PACKAGE_JSON_PATH):
-      raise Exception(f"{PACKAGE_JSON_PATH} does not exist.")
-  
-  with open(PACKAGE_JSON_PATH, "r") as fp:
-    return json.loads(fp.read())
-
-def save_package_json():
-  with open(PACKAGE_JSON_PATH, "w") as fp:
-    json.dump(package_json, fp, indent=4)
+import json, os, requests
+import click
+from constants import SPM_PACKAGES_PATH, SEARCH_INDEX_API_URL, IPFS_NODE_URL
+from package_json_utils import save_package_json, load_package_json
 
 
 package_json = load_package_json()
@@ -39,11 +21,17 @@ def install_single_package(name, version):
 
   save_package(package)
   package_json["packages"][package["name"]] = package["version"]
-  save_package_json()
+  save_package_json(package_json)
+
+  print(f"{name}:{version} is installed.")
 
 
-def install_from_package_json():
+def install_from_package_json(use_latest):
   for package_name, package_version in package_json["packages"].items():
+    if use_latest:
+      install_single_package(package_name, "latest")
+      continue
+
     install_single_package(package_name, package_version)
 
 # Some file system utilities
@@ -79,8 +67,8 @@ def get_latest_package(package_name):
   response = requests.get(f"{SEARCH_INDEX_API_URL}/spm/search/" + package_name)
   if not response.ok:
       raise Exception(f"Package '{package_name}' does not exist.")
-  
-  responseObj = json.loads(response.text)
+
+  responseObj = json.loads(response.text)[0]
   if "name" not in responseObj and "version" not in responseObj:
      raise Exception(f"Package '{package_name}' does not exist.")
 
@@ -104,8 +92,26 @@ def get_package_content(package):
   return response.text
 
 
-if __name__ == "__main__":
+@click.command()
+@click.argument('name', default = '')
+@click.option('--version', default = '')
+def install(name, version):
+  is_multi_install = len(name.strip()) == 0
+  if is_multi_install and version != '' and version != 'latest':
+    raise Exception ("Version cannot be provided when installing all packages.")
   
-  # install_single("test_package", "latest")
-  install_single_package("test_package2", "1.0.0")
+  if is_multi_install:
+    use_latest = version == "latest"
+    install_from_package_json(use_latest)
+    return
+  
+  if version == '':
+    version = "latest"
+
+  install_single_package(name, version)
+
+if __name__ == "__main__":
+  install()
+  # install_single_package("test_package", "latest")
+  # install_single_package("test_package2", "1.0.0")
   # install_from_package_json()

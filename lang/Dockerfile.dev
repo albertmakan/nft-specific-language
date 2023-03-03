@@ -15,6 +15,7 @@ RUN pip3 install jsonmerge
 
 RUN pip3 install pygls
 RUN pip install --force-reinstall -v "lsprotocol==2022.0.0a10"
+RUN pip3 install ecdsa
 
 RUN pip3 install -e src/spm
 RUN pip3 install -e src/spmgen
