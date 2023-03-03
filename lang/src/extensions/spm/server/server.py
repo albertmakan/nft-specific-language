@@ -20,7 +20,7 @@ import re
 import time
 import uuid
 from json import JSONDecodeError
-from typing import Optional
+import os
 
 from lsprotocol.types import (TEXT_DOCUMENT_COMPLETION, TEXT_DOCUMENT_DID_CHANGE,
                                TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
@@ -123,7 +123,12 @@ def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionLis
     uri = params.text_document.uri
     doc = ls.workspace.get_document(uri)
     current_line = doc.lines[params.position.line].strip()
+    current_col = params.position.character
+    # pera.dr.mama.p
+    current_all_word = current_line[:current_col]
+    current_word = current_all_word.split('.')[-1]
 
+    packages_path = ls.workspace.root_path + "/spm_packages" # TODO read from config
 
     # ls.show_message_log("PERA_SVECKI_MEGACAR - " + ls.workspace.root_path)
     # ls.show_message_log(ls.workspace.)
@@ -131,14 +136,15 @@ def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionLis
     # ls.show_message_log("PERA_SVECKI_MEGACAR - " + ls.workspace.documents)
 
     # load available packages
-    packages = []
+    package_paths = [ f.path for f in os.scandir(packages_path) if f.is_dir() ]
+    package_names = [ p.split('/')[-1] for p in package_paths ]
 
     # filter relevant packages
-    relevant_packages = []
+    relevant_package_names = [name for name in package_names if name.startswith(current_word)]
     
     items=[]
-    if current_line.endswith("hello."):
-        items.append(CompletionItem(label = "jajara", kind=CompletionItemKind.Class))
+    for package_name in relevant_package_names:
+        items.append(CompletionItem(label = package_name, kind=CompletionItemKind.Module))
     return CompletionList(
         is_incomplete=False,
         items = items,
