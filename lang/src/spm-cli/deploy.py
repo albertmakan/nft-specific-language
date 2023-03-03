@@ -9,7 +9,7 @@ from crypto import create_signature
 def deploy():
   package_metadata = load_package_json()["metadata"]
   validate_package_metadata(package_metadata)
-  package_content = load_package_content(f'{package_metadata["name"]}.spm')
+  package_content = load_package_content(f'{package_metadata["name"]}.json')
 
   priv_key = take_input("Package private key")
   signature = create_signature(priv_key, package_metadata["name"] + package_metadata["author"] + package_metadata["version"])

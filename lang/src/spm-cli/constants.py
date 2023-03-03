@@ -1,6 +1,8 @@
 
 PACKAGE_JSON_PATH = "package.json"
-SPM_PACKAGES_PATH = ".spm_packages"
+SPM_PACKAGES_PATH = "spm_packages"
 
-SEARCH_INDEX_API_URL = "http://localhost:3000/api"
-IPFS_NODE_URL = "http://localhost:9090/ipfs"
+
+BASE_URL = "http://host.docker.internal" # "http://localhost"
+SEARCH_INDEX_API_URL = f"{BASE_URL}:3000/api"
+IPFS_NODE_URL = f"{BASE_URL}:9090/ipfs"
