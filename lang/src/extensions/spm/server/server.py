@@ -542,4 +542,3 @@ def show_configuration_thread(ls: SpmLanguageServer, *args):
     except Exception as e:
         ls.show_message_log(f'Error ocurred: {e}')
 
-
