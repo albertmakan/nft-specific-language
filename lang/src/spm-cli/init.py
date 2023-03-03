@@ -1,9 +1,22 @@
 import os, json, click
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, BaseLoader
 from input_utils import take_input
 from validation_utils import is_version_valid
 from constants import SPM_PACKAGES_PATH, PACKAGE_JSON_PATH
 from crypto import generate_key_pair
+
+
+initial_package_template = '''
+packages {
+  // using standards.erc721 as ERC721
+  // using "./erc20.sol" as ERC20
+}
+
+package {{name}}
+{
+  
+}
+'''
 
 @click.command()
 def init():
@@ -23,8 +36,8 @@ def create_spm_packages():
     os.makedirs(SPM_PACKAGES_PATH)
 
 def create_package_definition(name):
-  environment = Environment(loader=FileSystemLoader("./"))
-  template = environment.get_template("template.spm")
+  environment = Environment(loader=BaseLoader)
+  template = environment.from_string(initial_package_template)
  
   filename = f"{name}.spm"
   content = template.render(

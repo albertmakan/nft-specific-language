@@ -4,7 +4,7 @@ from constants import SPM_PACKAGES_PATH, SEARCH_INDEX_API_URL, IPFS_NODE_URL
 from package_json_utils import save_package_json, load_package_json
 
 
-package_json = load_package_json()
+package_json = None
 
 # Install methods
 
@@ -53,7 +53,7 @@ def remove_existing_package(package):
     os.remove(package_path)
 
 def form_package_path(package):
-  return f'{SPM_PACKAGES_PATH}/{package["name"]}_{package["version"]}.spm'
+  return f'{SPM_PACKAGES_PATH}/{package["name"]}_{package["version"]}.json'
 
 # Methods that are communicating with the search index and ipfs 
 
@@ -96,6 +96,9 @@ def get_package_content(package):
 @click.argument('name', default = '')
 @click.option('--version', default = '')
 def install(name, version):
+  global package_json
+  package_json = load_package_json()
+  
   is_multi_install = len(name.strip()) == 0
   if is_multi_install and version != '' and version != 'latest':
     raise Exception ("Version cannot be provided when installing all packages.")

@@ -1,9 +1,0 @@
-packages {
-  // using standards.erc721 as ERC721
-  // using "./erc20.sol" as ERC20
-}
-
-package {{name}}
-{
-  
-}
