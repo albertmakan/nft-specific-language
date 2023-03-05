@@ -7,9 +7,9 @@ from model_utils import find_import
 
 __version__ = "0.1.0.dev"
 
-@generator('spm', 'solidity')
+@generator('spm', 'json')
 def spm_generate_solidity(metamodel, model, output_path, overwrite, debug, **custom_args):
-    "Generator for generating solidity from spm descriptions"
+    "Generator for generating solidity json from spm descriptions"
 
     # output_file = get_output_filename(model.file_name, output_path, '*.spm')
     # gen_file(model.file_name, output_file,
@@ -17,13 +17,19 @@ def spm_generate_solidity(metamodel, model, output_path, overwrite, debug, **cus
     #          overwrite,
     #          success_message='To convert to png run "dot -Tpng -O {}"'
     #          .format(os.path.basename(output_file)))
-    output_file="proba-spm"
-    generator_callback(model, output_file, overwrite)
+
+    generator_callback(model, output_path, overwrite)
 
 def generator_callback(model: Script, output_file: str, overwrite: bool):
     """
     A generator function that produce output_file from model.
     """
+    if "errors" in dir(model):
+        for error in model.errors:
+            print(dir(error.construct))
+            print(error.construct._tx_obj_attrs)
+
+        return 
 
     package_output = { 
         'definition': {},
@@ -40,6 +46,8 @@ def generator_callback(model: Script, output_file: str, overwrite: bool):
         package_output['solidity_code'][package_alias] = generate_package_code(solidity_files[package_alias], exports_and_dependencies)
     package_output['definition'] = package_definition
 
+    if not output_file.endswith(".json"):
+        output_file = output_file + ".json"
     with open(output_file, 'w') as f:
         f.write(json.dumps(package_output, sort_keys=True, indent=4))
 
