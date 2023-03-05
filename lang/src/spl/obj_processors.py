@@ -5,7 +5,7 @@ def _find_package_section(construct: Construct):
     c: Construct = construct.parent
     while not isinstance(c, Script):
         c = c.parent
-    return c.package
+    return c.package_section
 
 
 def package_processor(package_section: PackageSection):

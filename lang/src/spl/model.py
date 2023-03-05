@@ -5,9 +5,16 @@ from dataclasses import dataclass
 class Construct:
     parent: Any
 
+
+@dataclass
+class Address(Construct):
+    value: str
+    def __str__(self) -> str:
+        return str(self.value)
+
 @dataclass
 class AddressSet(Construct):
-    values: List[str]
+    values: List[Address]
     def __str__(self) -> str:
         return str(self.values)
 
@@ -19,7 +26,7 @@ class Percentage(Construct):
 
 @dataclass
 class Parameter(Construct):
-    value: Union[str, int, float, AddressSet, Percentage]
+    literal: Union[str, int, float, AddressSet, Percentage, Address]
     name: str
 
 @dataclass
@@ -60,8 +67,7 @@ class ContractAdministrator(Construct):
 
 @dataclass
 class Administrator(Construct):
-    package: str
-    params: Parameters
+    method: Method
     contract_administrators: List[ContractAdministrator]
 
 @dataclass
@@ -71,6 +77,6 @@ class AdministrationSection(Construct):
 
 @dataclass
 class Script:
-    package: PackageSection
-    contract: ContractSection
+    package_section: PackageSection
+    contract_section: ContractSection
     administration: AdministrationSection

@@ -6,8 +6,9 @@ from model import *
 
 __version__ = "0.1.0.dev"
 
-_classes = (Parameter, Parameters, Administrator, AdministrationSection, Method, ContractAdministrator, \
-    ContractImplementation, ContractDefinition, ContractSection, PackageImport, PackageSection, Script, AddressSet, Percentage)
+_classes = (Parameter, Parameters, Administrator, AdministrationSection, Method, ContractAdministrator,
+            ContractImplementation, ContractDefinition, ContractSection, PackageImport, PackageSection, Script, AddressSet, Percentage, Address)
+
 
 @language('spl', '*.spl')
 def spl_language():
