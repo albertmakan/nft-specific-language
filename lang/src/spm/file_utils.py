@@ -18,7 +18,7 @@ def load_solidity_file(file_path):
         return input, input_lines
 
 def load_package(package_name, package_version):
-    with open("{0}_{1}.spm".format(package_name, package_version), "r") as fp:
+    with open("{0}_{1}.json".format(package_name, package_version), "r") as fp:
         package = fp.read()
 
         return json.loads(package)
