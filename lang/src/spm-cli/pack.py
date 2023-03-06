@@ -10,5 +10,6 @@ def pack():
   output_file = f'{package_metadata["name"]}.json'
   os.system(f"textx generate {package_file} --target json --output-path {output_file}")
 
+# Note: this is used for manual testing
 if __name__ == "__main__":
   pack()

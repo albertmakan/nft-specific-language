@@ -14,7 +14,6 @@ def create_signature(priv_key_string, text):
       bytes.fromhex(priv_key_string),
       curve = ecdsa.SECP256k1,
       hashfunc = sha256
-    
     )
   
   return priv_key.sign(str.encode(text)).hex()

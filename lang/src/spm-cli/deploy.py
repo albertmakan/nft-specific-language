@@ -45,6 +45,6 @@ def deploy_package(package_data):
 
   return True
 
-
+# Note: this is used for manual testing
 if __name__ == "__main__":
   deploy()
