@@ -72,13 +72,13 @@ def read_package_data():
   author = take_input("Package author")
   
   while True:
-    version = take_input("Package version", "1.0.0")
+    version = take_input("Package version", "0.0.1")
     if is_version_valid(version):
       break
-    print("Version must be Major.Minor.Patch")
+    print("The prefered version format is: Major.Minor.Patch, where each part is a whole number.")
 
   return name, author, version
 
-
+# Note: this is used for manual testing
 if __name__ == "__main__":
   init()

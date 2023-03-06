@@ -66,18 +66,22 @@ def get_package(package_name, version):
 def get_latest_package(package_name):
   response = requests.get(f"{SEARCH_INDEX_API_URL}/spm/search/" + package_name)
   if not response.ok:
-      raise Exception(f"Package '{package_name}' does not exist.")
+    raise Exception(f"Package '{package_name}' does not exist.")
 
-  responseObj = json.loads(response.text)[0]
-  if "name" not in responseObj and "version" not in responseObj:
-     raise Exception(f"Package '{package_name}' does not exist.")
+  packages = json.loads(response.text)
+  if not len(packages):
+    raise Exception(f"Package '{package_name}' does not exist.")
 
-  return responseObj
+  package = packages[0]
+  if "name" not in package and "version" not in package:
+    raise Exception(f"Package '{package_name}' does not exist.")
+
+  return package
 
 def get_specific_version_for_package(package_name, package_version):
   response = requests.get(f"{SEARCH_INDEX_API_URL}/spm/package/" + package_name)
   if not response.ok:
-     raise Exception(f"Package '{package_name}' does not exist.")
+    raise Exception(f"Package '{package_name}' does not exist.")
   
   packages = json.loads(response.text)
   for package in packages:
@@ -113,6 +117,7 @@ def install(name, version):
 
   install_single_package(name, version)
 
+# Note: this is used for manual testing
 if __name__ == "__main__":
   install()
   # install_single_package("test_package", "latest")

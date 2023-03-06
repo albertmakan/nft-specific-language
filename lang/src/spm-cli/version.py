@@ -80,11 +80,12 @@ def print_current_version():
 
 def save_new_version(version):
   if not is_version_valid(version):
-    raise Exception("Version must be Major.Minor.Patch")
+    raise Exception("The prefered version format is: Major.Minor.Patch, where each part is a whole number.")
 
   package_metadata["version"] = version
   save_package_json(package_json)
 
 
+# Note: this is used for manual testing
 if __name__ == "__main__":
   version()
