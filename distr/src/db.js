@@ -5,6 +5,7 @@ import express from "express";
 import z from "zod";
 import { addMonths } from "date-fns";
 import { testVersion, compareVersions } from "./utils.js";
+import { verifySignature } from "./crypto.js";
 
 // TODO: implement clustering logic
 // import * as PeerId from "@libp2p/peer-id";
@@ -34,6 +35,11 @@ const ipfs = await IPFS.create({
     enabled: true, // enable circuit relay dialer and listener
     hop: {
       enabled: true, // enable circuit relay HOP (make this node a relay)
+    },
+  },
+  config: {
+    Addresses: {
+      Gateway: "/ip4/0.0.0.0/tcp/9090",
     },
   },
   pubsub: true,
@@ -103,6 +109,12 @@ app.get("/api/spm/search/:term", async (req, res) => {
   res.send(result);
 });
 
+app.get("/api/spm/search", async (req, res) => {
+  const result = await latestVersionsDb.get("");
+
+  res.send(result);
+});
+
 app.get("/api/spm/package/:name", async (req, res) => {
   const result = await allVersionsDb.get(`${req.params.name}:`);
 
@@ -168,7 +180,8 @@ app.post("/api/spm/packages", async (req, res) => {
     if (
       !!existingPackage &&
       parsedPackage.pubkey !== existingPackage.pubkey &&
-      new Date(x.expirationDate).getTime() > threeMonthsLater.getTime()
+      new Date(existingPackage.expirationDate).getTime() >
+        threeMonthsLater.getTime()
     ) {
       res.status(400).send({ message: "Package is reserved for 3 months." });
       return;
@@ -182,23 +195,27 @@ app.post("/api/spm/packages", async (req, res) => {
       return;
     }
 
+    if (!parsedPackage.signature) {
+      res.status(400).send({
+        message:
+          "Signature must be provided when publishing a new version of the package. Signature: privkey(name + author + version).",
+      });
+      return;
+    }
+    const message = `${parsedPackage.name}${parsedPackage.author}${parsedPackage.version}`;
+    const signatureValid = await verifySignature(
+      parsedPackage.pubkey,
+      parsedPackage.signature,
+      message
+    );
+    if (!signatureValid) {
+      res.status(400).send({
+        message:
+          "Invalid signature for the provided package info. Signature: privkey(name + author + version).",
+      });
+      return;
+    }
     if (!!existingPackage) {
-      if (!parsedPackage.signature) {
-        res.status(400).send({
-          message:
-            "Signature must be provided when publishing a new version of the package. Signature: privkey(name + author + version).",
-        });
-        return;
-      }
-      // TODO validate signature
-      const signatureValid = true;
-      if (!signatureValid) {
-        res.status(400).send({
-          message:
-            "Invalid signature for the provided package info. Signature: privkey(name + author + version).",
-        });
-        return;
-      }
       if (compareVersions(existingPackage.version, parsedPackage.version)) {
         res.status(400).send({
           message:
