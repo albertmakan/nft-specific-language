@@ -23,14 +23,14 @@ from json import JSONDecodeError
 import os
 
 from lsprotocol.types import (TEXT_DOCUMENT_COMPLETION, TEXT_DOCUMENT_DID_CHANGE,
-                               TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
-                               TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL)
-from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions, 
-                              
+                              TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
+                              TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL)
+from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,
+
                               CompletionItemKind, InsertTextMode,
 
                               CompletionParams, ConfigurationItem,
-                              Diagnostic, 
+                              Diagnostic,
                               DidChangeTextDocumentParams,
                               DidCloseTextDocumentParams,
                               DidOpenTextDocumentParams, MessageType, Position,
@@ -41,6 +41,8 @@ from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,
                               WorkDoneProgressReport,
                               WorkspaceConfigurationParams)
 from pygls.server import LanguageServer
+
+from server.sol_file_utils import extract_solidity_data_from_file
 
 COUNT_DOWN_START_IN_SECONDS = 10
 COUNT_DOWN_SLEEP_IN_SECONDS = 1
@@ -115,40 +117,261 @@ def _validate_spm(source):
 #         ]
 #     )
 
-@spm_server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=['.']))
+def _extract_base_file_path(uri: str):
+    uri_tokens = uri.split('/')
+    return '/'.join(uri_tokens[:-1])
+
+
+local_packages = None
+package_definitions = {}
+solidity_files = {}
+
+
+def load_local_packages():
+    global local_packages
+    if local_packages is not None:
+        return
+
+    package_json_path = os.path.join(
+        spm_server.workspace.root_path, "package.json")
+    with open(package_json_path, "r") as fp:
+        package_json = json.loads(fp.read())
+        if "packages" in package_json:
+            local_packages = package_json["packages"]
+
+
+def get_package_definition(package_name):
+
+    if package_name in package_definitions:
+        return package_definitions[package_name]
+
+    if not package_name in local_packages:
+        return None
+
+    package_version = local_packages[package_name]
+
+    package_path = os.path.join(spm_server.workspace.root_path,
+                                "spm_packages", f"{package_name}_{package_version}.json")
+    with open(package_path, "r") as fp:
+        package = json.loads(fp.read())
+        if "definition" in package:
+            package_definition = package["definition"]
+            package_definitions[package_name] = package_definition
+
+            return package_definition
+
+
+def get_solidity_file(solidity_file):
+    if solidity_file in solidity_files:
+        return solidity_files[solidity_file]
+
+    sol_data = extract_solidity_data_from_file(solidity_file)
+    solidity_files[solidity_file] = sol_data
+
+    return sol_data
+
+
+def form_auto_complition_response(suggestions: list[str], suggestion_kind=CompletionItemKind.Folder):
+    items = [CompletionItem(label=suggestion, kind=suggestion_kind, sort_text=chr(
+        0) + suggestion.lower()) for suggestion in suggestions]
+    return CompletionList(
+        is_incomplete=False,
+        items=items,
+    )
+
+
+WHITE_SPACE = re.compile("^.*\s+")
+
+USING_REGEX = re.compile("^using\s+")
+USING_FILE_IMPORT_REGEX = re.compile("^using\s+\"")
+USING_PACKAGE_IMPORT_REGEX = re.compile("^using\s+")
+
+ALIAS_REGEX = re.compile("\s+as\s+")
+HAS_ALIAS_REGEX = re.compile("^.*\s+as\s+.*")
+
+EXPORT_TYPE_REGEX = re.compile("@(function|modifier|struct|contract|event)\s*")
+
+
+def find_possible_file_imports(uri, current_input):
+    inputed_path = re.sub(USING_FILE_IMPORT_REGEX, '',
+                          current_input).replace('"', '')
+
+    path = os.path.join(_extract_base_file_path(
+        uri), _extract_base_file_path(inputed_path)) + "/"
+
+    first_char = "/" if inputed_path.endswith('.') else ""
+    return [first_char + f.path.replace(path, '') for f in os.scandir(path) if f.is_dir() or f.path.endswith(".sol")]
+
+
+def find_possible_package_imports(current_input):
+    inputed_path = re.sub(USING_PACKAGE_IMPORT_REGEX, '', current_input)
+
+    package_tokens = inputed_path.split('.')
+    if len(package_tokens) == 1:
+        return local_packages.keys()
+
+    package_name = package_tokens[0]
+    package_definition = get_package_definition(package_name)
+    if package_definition is None:
+        return []
+
+    current_package = package_definition
+    for package_token in package_tokens[:-1]:
+        current_package = current_package[package_token]
+
+    return [key for key in current_package.keys() if "type" not in current_package[key] and "path" not in current_package[key]]
+
+
+def find_aliasses(doc_lines):
+    aliasses = {}
+
+    # TODO: DUPLICATE ALIASSES
+    for line in doc_lines:
+        line = line.strip()
+        if not USING_REGEX.match(line):
+            continue
+
+        line = re.sub(USING_REGEX, '', line).replace('"', '')
+        aliasses[extract_alias(line)] = extract_package(line)
+
+    return aliasses
+
+
+def extract_package(line):
+    if HAS_ALIAS_REGEX.match(line):
+        return re.sub(ALIAS_REGEX, ' as ', line).split(' as ')[0]
+
+    return line
+
+
+def extract_alias(line):
+    if HAS_ALIAS_REGEX.match(line):
+        return re.sub(ALIAS_REGEX, ' as ', line).split(' as ')[-1]
+
+    if line.endswith(".sol"):
+        return line.split('/')[-1].replace(".sol", "")
+
+    return line.split('.')[-1]
+
+
+def find_suggestion_from_package(current_line, package_alias, package):
+    current_input = current_line.replace(f'{package_alias}.', f'{package}.')
+
+    package_name = package.split('.')[0]
+    package_definition = get_package_definition(package_name)
+    package_namespace_parts = current_input.split('.')
+
+    current_package = package_definition
+    for package_token in package_namespace_parts[:-1]:
+        current_package = current_package[package_token]
+
+    return [key for key in current_package.keys() if key not in ["path", "type"]]
+
+
+@spm_server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=['.', '/', '"', '@']))
 def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionList:
     """Completion suggestions for character names."""
 
+    # TODO: NAPRAVITI NACIN DA NADJEMO JESMO LI U PACKAGE ILI NE
+
     # load document
-    uri = params.text_document.uri
-    doc = ls.workspace.get_document(uri)
+    uri = params.text_document.uri.replace('file://', '')
+    doc = ls.workspace.get_document(params.text_document.uri)
     current_line = doc.lines[params.position.line].strip()
     current_col = params.position.character
-    # pera.dr.mama.p
-    current_all_word = current_line[:current_col]
-    current_word = current_all_word.split('.')[-1]
 
-    packages_path = ls.workspace.root_path + "/spm_packages" # TODO read from config
+    current_input = current_line[:current_col + 1]
+    ls.show_message_log(current_input)
 
-    # ls.show_message_log("PERA_SVECKI_MEGACAR - " + ls.workspace.root_path)
-    # ls.show_message_log(ls.workspace.)
-    # ls.show_message_log("PERA_SVECKI_MEGACAR - " + ls.workspace.folders)
-    # ls.show_message_log("PERA_SVECKI_MEGACAR - " + ls.workspace.documents)
+    load_local_packages()
+    aliasses = find_aliasses(doc.lines)
 
-    # load available packages
-    package_paths = [ f.path for f in os.scandir(packages_path) if f.is_dir() ]
-    package_names = [ p.split('/')[-1] for p in package_paths ]
+    if USING_FILE_IMPORT_REGEX.match(current_line):
+        possible_imports = find_possible_file_imports(uri, current_input)
 
-    # filter relevant packages
-    relevant_package_names = [name for name in package_names if name.startswith(current_word)]
-    
-    items=[]
-    for package_name in relevant_package_names:
-        items.append(CompletionItem(label = package_name, kind=CompletionItemKind.Module))
-    return CompletionList(
-        is_incomplete=False,
-        items = items,
-    )
+        return form_auto_complition_response(possible_imports)
+
+    if USING_PACKAGE_IMPORT_REGEX.match(current_line):
+        possible_imports = find_possible_package_imports(current_input)
+
+        return form_auto_complition_response(possible_imports)
+
+    if current_line.startswith('@') and not WHITE_SPACE.match(current_line) and not EXPORT_TYPE_REGEX.match(current_line):
+        return form_auto_complition_response(['function', 'struct', 'contract', 'modifier', 'event'], CompletionItemKind.Class)
+
+    # ponudi aliase pa onda dalje
+    should_suggest_aliasses = '.' not in current_line
+    if should_suggest_aliasses:
+        return form_auto_complition_response(aliasses.keys())
+
+    current_line = re.sub(EXPORT_TYPE_REGEX, '', current_line)
+    package_alias = current_line.split('.')[0]
+    package = aliasses[package_alias]
+
+    should_suggest_from_package = '.sol' not in package
+    if should_suggest_from_package:
+        suggestion = find_suggestion_from_package(
+            current_line, package_alias, package)
+        return form_auto_complition_response(suggestion)
+
+    suggestion = find_suggestions_from_file(uri, current_line, package)
+
+    return form_auto_complition_response(suggestion)
+
+
+def find_suggestions_from_file(uri, current_line, package):
+    sol_file_path = f'"{os.path.join(_extract_base_file_path(uri), package)}"'
+    sol_data = get_solidity_file(sol_file_path)
+
+    export_tokens = current_line.split('.')
+    if len(export_tokens) not in [2, 3]:
+        return []
+
+    if len(export_tokens) == 2:
+        return get_first_depth_suggestions_from_file(sol_data)
+
+    contract = export_tokens[1]
+    return get_second_depth_suggestions_from_file(sol_data, contract)
+
+
+def get_first_depth_suggestions_from_file(sol_data):
+
+    contract_names = [contract for contract in sol_data.keys()
+                      if contract != '@global']
+
+    global_exports = get_exports_from_contract(sol_data, '@global')
+    contract_names.extend(global_exports)
+
+    return contract_names
+
+
+def get_second_depth_suggestions_from_file(sol_data, contract):
+
+    if contract not in sol_data:
+        return []
+
+    return get_exports_from_contract(sol_data, contract)
+
+
+def get_exports_from_contract(sol_data, contract):
+
+    exports = []
+    inheritance_chain = [contract]
+
+    while len(inheritance_chain):
+        current_contract = inheritance_chain.pop()
+        contract_data = sol_data[current_contract]
+
+        if "base" in contract_data and contract_data["base"] is not None:
+            inheritance_chain.append(contract_data["base"])
+
+        for sol_type, sol_type_data in contract_data.items():
+            if sol_type in ["base", "code", "variables", "imports"]:
+                continue
+
+            exports.extend(sol_type_data.keys())
+
+    return exports
 
 
 @spm_server.command(SpmLanguageServer.CMD_COUNT_DOWN_BLOCKING)
@@ -176,7 +399,7 @@ async def count_down_10_seconds_non_blocking(ls, *args):
 @spm_server.feature(TEXT_DOCUMENT_DID_CHANGE)
 def did_change(ls, params: DidChangeTextDocumentParams):
     """Text document did change notification."""
-    _validate(ls, params)
+    # _validate(ls, params)
 
 
 @spm_server.feature(TEXT_DOCUMENT_DID_CLOSE)
@@ -195,8 +418,8 @@ async def did_open(ls, params: DidOpenTextDocumentParams):
 @spm_server.feature(
     TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
     SemanticTokensLegend(
-        token_types = ["operator"],
-        token_modifiers = []
+        token_types=["operator"],
+        token_modifiers=[]
     )
 )
 def semantic_tokens(ls: SpmLanguageServer, params: SemanticTokensParams):
@@ -232,7 +455,6 @@ def semantic_tokens(ls: SpmLanguageServer, params: SemanticTokensParams):
     return SemanticTokens(data=data)
 
 
-
 @spm_server.command(SpmLanguageServer.CMD_PROGRESS)
 async def progress(ls: SpmLanguageServer, *args):
     """Create and start the progress on the client."""
@@ -240,12 +462,13 @@ async def progress(ls: SpmLanguageServer, *args):
     # Create
     await ls.progress.create_async(token)
     # Begin
-    ls.progress.begin(token, WorkDoneProgressBegin(title='Indexing', percentage=0))
+    ls.progress.begin(token, WorkDoneProgressBegin(
+        title='Indexing', percentage=0))
     # Report
     for i in range(1, 10):
         ls.progress.report(
             token,
-            WorkDoneProgressReport(message=f'{i * 10}%', percentage= i * 10),
+            WorkDoneProgressReport(message=f'{i * 10}%', percentage=i * 10),
         )
         await asyncio.sleep(2)
     # End
@@ -256,11 +479,11 @@ async def progress(ls: SpmLanguageServer, *args):
 async def register_completions(ls: SpmLanguageServer, *args):
     """Register completions method on the client."""
     params = RegistrationParams(registrations=[
-                Registration(
-                    id=str(uuid.uuid4()),
-                    method=TEXT_DOCUMENT_COMPLETION,
-                    register_options={"triggerCharacters": "[':']"})
-             ])
+        Registration(
+            id=str(uuid.uuid4()),
+            method=TEXT_DOCUMENT_COMPLETION,
+            register_options={"triggerCharacters": "[':']"})
+    ])
     response = await ls.register_capability_async(params)
     if response is None:
         ls.show_message('Successfully registered completions method')
@@ -278,11 +501,12 @@ async def show_configuration_async(ls: SpmLanguageServer, *args):
                 ConfigurationItem(
                     scope_uri='',
                     section=SpmLanguageServer.CONFIGURATION_SECTION)
-        ]))
+            ]))
 
         example_config = config[0].get('exampleConfiguration')
 
-        ls.show_message(f'spmServer.exampleConfiguration value: {example_config}')
+        ls.show_message(
+            f'spmServer.exampleConfiguration value: {example_config}')
 
     except Exception as e:
         ls.show_message_log(f'Error ocurred: {e}')
@@ -295,7 +519,8 @@ def show_configuration_callback(ls: SpmLanguageServer, *args):
         try:
             example_config = config[0].get('exampleConfiguration')
 
-            ls.show_message(f'spmServer.exampleConfiguration value: {example_config}')
+            ls.show_message(
+                f'spmServer.exampleConfiguration value: {example_config}')
 
         except Exception as e:
             ls.show_message_log(f'Error ocurred: {e}')
@@ -325,7 +550,8 @@ def show_configuration_thread(ls: SpmLanguageServer, *args):
 
         example_config = config[0].get('exampleConfiguration')
 
-        ls.show_message(f'spmServer.exampleConfiguration value: {example_config}')
+        ls.show_message(
+            f'spmServer.exampleConfiguration value: {example_config}')
 
     except Exception as e:
         ls.show_message_log(f'Error ocurred: {e}')
