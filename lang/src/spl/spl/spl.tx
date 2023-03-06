@@ -1,6 +1,6 @@
 Script:
-    (package=PackageSection)?
-    contract=ContractSection
+    package_section=PackageSection
+    contract_section=ContractSection
     administration=AdministrationSection
 ;
 
@@ -48,7 +48,7 @@ ExtensionAdministrator:
 ;
 
 Administrator:
-    package=FQN (params=Parameters)? 'having' 'partial' 'access' '{'
+    method=Method 'having' 'partial' 'access' '{'
         contract_administrators+=ContractAdministrator
     '}'
 ;
@@ -64,16 +64,16 @@ Parameters:
 ;
 
 Parameter:
-    value=Literal name=ID
+    literal=Literal name=ID
 ;
 
 Literal:
-    Percentage | INT | FLOAT | STRING | AddressSet
+    Percentage | INT | FLOAT | STRING | AddressSet | Address
 ;
 
 Percentage: percent=/(100|[1-9]?\d)/ '%';
 
-Address: /0x[a-fA-F0-9]{40}/;
+Address: value=/0x[a-fA-F0-9]{40}/;
 
 AddressSet: '[' values*=Address[','] ']';
 
