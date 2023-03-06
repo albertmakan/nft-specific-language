@@ -1,0 +1,11 @@
+packages {
+    using panic.parent as Milos
+    using "./nesto.sol"
+    // using panic.parent.S1.costic
+}
+
+package pera {
+    @modifier Milos.S1.transfer
+    nesto.
+    
+}
