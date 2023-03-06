@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:16.18.1
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ EXPOSE 4002
 EXPOSE 4003
 
 # ipfs gateway
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 9090
+EXPOSE 9091
 
 CMD [ "npm", "start" ]
