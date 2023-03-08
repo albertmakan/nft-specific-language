@@ -6,7 +6,7 @@ struct Nemanja {
 }
 
 
-struct Nikola {
+struct Nik123ola {
     ERC721 x;
     Nemanja n;
 }
@@ -26,6 +26,13 @@ contract IERC20 {
 }
 
 contract ERC20 {
+/* function approve(address spender, uint256 amount) external costs returns (bool) {
+    //     allowance[msg.sender][spender] = amount;
+    //     emit Approval(msg.sender, spender, amount);
+    //     return true;
+    // }
+    */
+
     event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);
 
     uint256 public totalSupply;
@@ -49,20 +56,21 @@ contract ERC20 {
     {
         ERC721 nikolica = new ERC721();
         Milos m = Milos(2);
+        string minuta = "nesto" + approve3();
         balanceOf[msg.sender] -= amount;
-        approve3();
         balanceOf[recipient] += amount;
         emit DepositContract(msg.sender, recipient, amount);
 
         return true;
     }
 
-    function approve(address spender, uint256 amount) external costs returns (bool) {
-        allowance[msg.sender][spender] = amount;
-        emit Approval(msg.sender, spender, amount);
-        return true;
-    }
-
+    /* function approve(address spender, uint256 amount) external costs returns (bool) {
+    //     allowance[msg.sender][spender] = amount;
+    //     emit Approval(msg.sender, spender, amount);
+    //     return true;
+    // }
+    */
+    
     function transferFrom(
         address sender,
         address recipient,

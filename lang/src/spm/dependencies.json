@@ -3,6 +3,9 @@
         "events": {},
         "functions": {
             "approve2": {
+                "contracts": [
+                    "ERC20"
+                ],
                 "functions": [
                     "approve3"
                 ]
@@ -10,7 +13,7 @@
         },
         "modifiers": {},
         "structs": {
-            "Nikola": {
+            "Nik123ola": {
                 "contracts": [
                     "ERC721"
                 ],
@@ -22,22 +25,8 @@
         "variables": {}
     },
     "ERC20": {
-        "events": {
-            "DepositContract": {
-                "structs": [
-                    "Nikola"
-                ]
-            }
-        },
+        "events": {},
         "functions": {
-            "approve": {
-                "modifiers": [
-                    "costs"
-                ],
-                "variables": [
-                    "allowance"
-                ]
-            },
             "transfer": {
                 "contracts": [
                     "ERC721"
@@ -70,18 +59,7 @@
                 ]
             }
         },
-        "variables": {
-            "milos": {
-                "structs": [
-                    "Milos"
-                ]
-            },
-            "milos20CAO": {
-                "contracts": [
-                    "ERC20"
-                ]
-            }
-        }
+        "variables": {}
     },
     "ERC721": {
         "events": {},
@@ -117,22 +95,10 @@
                 ]
             }
         },
-        "variables": {
-            "VARIABLE_INHERIT": {
-                "structs": [
-                    "STRUCT_BASE"
-                ]
-            }
-        }
+        "variables": {}
     },
     "IERC20": {
-        "events": {
-            "DepositBase": {
-                "structs": [
-                    "Nikola"
-                ]
-            }
-        },
+        "events": {},
         "functions": {},
         "modifiers": {},
         "structs": {},

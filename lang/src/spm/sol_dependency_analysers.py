@@ -1,3 +1,5 @@
+import re
+
 
 def form_dependencies(sol_data):
   
@@ -51,14 +53,8 @@ def form_dependencies(sol_data):
 def sanitize_itself(name, dependencies):
   return list(filter(lambda dependency: name != dependency, dependencies))
 
-def sanitize_empty_values(dependencies):
-  sanitized_dependencies = {}
-  for key, value in dependencies.items():
-    if not len(dependencies[key]):
-      continue
-    sanitized_dependencies[key] = value
-
-  return sanitized_dependencies
+def sanitize_empty_values(dependencies: dict):
+  return {k: v for k, v in dependencies.items() if v}
 
 
 def find_dependencies_for_struct(sol_data, contract, struct_name):
@@ -105,12 +101,7 @@ def find_dependencies_for_modifier(sol_data, contract, modifier_name):
 
 def find_dependent_contracts(sol_data, code):
   contract_names = find_possible_contract_name(sol_data)
-  dependent_contracts = []
-  for contract_name in contract_names:
-    if "new {0}".format(contract_name) not in code and "{0} ".format(contract_name) not in code:
-      continue
-    dependent_contracts.append(contract_name)
-  return dependent_contracts
+  return [name for name in contract_names if re.search(fr"\b{name}\b", remove_string_literals(code))]
 
 def find_possible_contract_name(sol_data):
   return list(sol_data.keys())
@@ -118,12 +109,7 @@ def find_possible_contract_name(sol_data):
 
 def find_dependent_structs(sol_data, contract, code):
   struct_names = find_possible_struct_names(sol_data, contract)
-  dependent_structs = []
-  for struct_name in struct_names:
-    if "{0} ".format(struct_name) not in code and "{0}(".format(struct_name) not in code:
-      continue
-    dependent_structs.append(struct_name)
-  return dependent_structs
+  return [name for name in struct_names if re.search(fr"\b{name}\b", remove_string_literals(code))]
 
 def find_possible_struct_names(sol_data, contract):
   struct_names = list(sol_data[contract]["structs"].keys())
@@ -139,12 +125,8 @@ def find_possible_struct_names(sol_data, contract):
 
 def find_dependent_functions(sol_data, contract, code):
   function_names = find_possible_function_names(sol_data, contract)
-  dependent_functions = []
-  for function_name in function_names:
-    if "{0}(".format(function_name) not in code:
-      continue
-    dependent_functions.append(function_name)
-  return dependent_functions
+  return [name for name in function_names if re.search(fr"\b{name}\b", remove_string_literals(code))]
+
 
 def find_possible_function_names(sol_data, contract):
   function_names = list(sol_data[contract]["functions"].keys())
@@ -160,12 +142,7 @@ def find_possible_function_names(sol_data, contract):
 
 def find_dependent_variables(sol_data, contract, code):
   variable_names = find_possible_variable_names(sol_data, contract)
-  dependent_variables = []
-  for variable_name in variable_names:
-    if "{0}".format(variable_name) not in code:
-      continue
-    dependent_variables.append(variable_name)
-  return dependent_variables
+  return [name for name in variable_names if re.search(fr"\b{name}\b", remove_string_literals(code))]
 
 def find_possible_variable_names(sol_data, contract):
   if contract == "@global":
@@ -182,12 +159,7 @@ def find_possible_variable_names(sol_data, contract):
 
 def find_dependent_events(sol_data, contract, code):
   event_names = find_possible_event_names(sol_data, contract)
-  dependent_event = []
-  for event_name in event_names:
-    if "emit {0}".format(event_name) not in code:
-      continue
-    dependent_event.append(event_name)
-  return dependent_event
+  return [name for name in event_names if re.search(fr"\bemit\s+{name}\b", remove_string_literals(code))]
 
 def find_possible_event_names(sol_data, contract):
   event_names = list(sol_data[contract]["events"].keys())
@@ -201,12 +173,7 @@ def find_possible_event_names(sol_data, contract):
 
 def find_dependent_modifiers(sol_data, contract, code):
   modifier_names = find_possible_modifier_names(sol_data, contract)
-  dependent_modifiers = []
-  for modifier_name in modifier_names:
-    if "{0} ".format(modifier_name) not in code and "{0}\n".format(modifier_name) not in code:
-      continue
-    dependent_modifiers.append(modifier_name)
-  return dependent_modifiers
+  return [name for name in modifier_names if re.search(fr"\b{name}\b", remove_string_literals(code))]
 
 def find_possible_modifier_names(sol_data, contract):
   modifier_names = list(sol_data[contract]["modifiers"].keys())
@@ -225,3 +192,8 @@ def find_contract_chain(contract, sol_data):
     contracts.append(current_contract)
     current_contract = sol_data[current_contract]["base"]
   return contracts
+
+
+def remove_string_literals(text: str):
+  string_rexeg = re.compile(r"\"(([^\"]|\\\")*[^\\])?\"")
+  return re.sub(string_rexeg, "", text)
