@@ -1,25 +1,17 @@
 import json, time
+from file_utils import load_solidity_file
 from merge import merge_data_with_dependencies
 from sol_code_extractions import extract_sol_data 
 from sol_dependency_analysers import form_dependencies
 # from package_generator import find_all_exported_items, generate_package
 
 
-def read_sol_file(file_path):
-  with open(file_path, "r") as fp:
-    input = fp.read()
-    fp.seek(0)
-    input_lines = fp.readlines()
-
-    return input, input_lines
-
-
 if __name__ == "__main__":
-  input, input_lines = read_sol_file("./ERC20.sol")
+  input = load_solidity_file("./ERC20.sol")
 
   start = time.time()
 
-  sol_data = extract_sol_data(input, input_lines)
+  sol_data = extract_sol_data(input)
   dependencies = form_dependencies(sol_data)
   merged_sol_data = merge_data_with_dependencies(sol_data, dependencies)
   # exported_items = find_all_exported_items(merged_sol_data, ['ERC20.transfer'])

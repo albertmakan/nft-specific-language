@@ -1,7 +1,7 @@
 {
     "@global": {
         "base": null,
-        "code": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.17;\n\nstruct Nemanja {\n    uint8 x;\n}\n\n\nstruct Nikola {\n    ERC721 x;\n    Nemanja n;\n}\n\nfunction approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}\n\nfunction approve3(address spender) returns (bool) {\n    return true;\n}\n\n\n\n\n\n\n\n\n\n\n}",
+        "code": "\npragma solidity ^0.8.17;\n\nstruct Nemanja {\n    uint8 x;\n}\n\n\nstruct Nik123ola {\n    ERC721 x;\n    Nemanja n;\n}\n\nfunction approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}\n\nfunction approve3(address spender) returns (bool) {\n    return true;\n}\n\n\n\n\n\n\n\n\n\n\n",
         "events": {},
         "functions": {
             "approve2": "function approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}",
@@ -11,19 +11,18 @@
         "modifiers": {},
         "structs": {
             "Nemanja": "struct Nemanja {\n    uint8 x;\n}",
-            "Nikola": "struct Nikola {\n    ERC721 x;\n    Nemanja n;\n}"
+            "Nik123ola": "struct Nik123ola {\n    ERC721 x;\n    Nemanja n;\n}"
         },
         "variables": {}
     },
     "ERC20": {
         "base": null,
-        "code": "contract ERC20 {\n    event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);\n\n    uint256 public totalSupply;\n    mapping(\n        address =>uint256\n    ) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n    string public name = \"Solidity by Example\";\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n    Milos public milos;\n    ERC20 public milos20CAO;\n\n    struct Milos {\n        Nemanja x;\n    }\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        balanceOf[msg.sender] -= amount;\n        approve3();\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }\n\n    function approve(address spender, uint256 amount) external costs returns (bool) {\n        allowance[msg.sender][spender] = amount;\n        emit Approval(msg.sender, spender, amount);\n        return true;\n    }\n\n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }\n\n     modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }\n}",
+        "code": "contract ERC20 {\n\n\n    event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);\n\n    uint256 public totalSupply;\n    mapping(\n        address =>uint256\n    ) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n    string public name = \"Solidity by Example\";\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n    Milos public milos;\n    ERC20 public milos20CAO;\n\n    struct Milos {\n        Nemanja x;\n    }\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        string minuta = \"nesto\" + approve3();\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }\n\n    \n    \n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }\n\n     modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }\n}",
         "events": {
             "DepositContract": "event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);"
         },
         "functions": {
-            "approve": "function approve(address spender, uint256 amount) external costs returns (bool) {\n        allowance[msg.sender][spender] = amount;\n        emit Approval(msg.sender, spender, amount);\n        return true;\n    }",
-            "transfer": "function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        balanceOf[msg.sender] -= amount;\n        approve3();\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }",
+            "transfer": "function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        string minuta = \"nesto\" + approve3();\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }",
             "transferFrom": "function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }"
         },
         "modifiers": {
@@ -75,7 +74,7 @@
     },
     "ERCINHERIT": {
         "base": "ERCBASE",
-        "code": "contract ERCINHERIT is ERCBASE {\n\n    struct STRUCT_INHERIT {\n        STRUCT_BASE inherited;\n    }\n\n    STRUCT_BASE public VARIABLE_INHERIT;\n\n    function FUNCTION_INHERIT() {\n        VARIABLE_BASE = VARIABLE_BASE;\n        return FUNCTION_BASE();\n    }\n",
+        "code": "contract ERCINHERIT is ERCBASE {\n\n    struct STRUCT_INHERIT {\n        STRUCT_BASE inherited;\n    }\n\n    STRUCT_BASE public VARIABLE_INHERIT;\n\n    function FUNCTION_INHERIT() {\n        VARIABLE_BASE = VARIABLE_BASE;\n        return FUNCTION_BASE();\n    }\n}",
         "events": {},
         "functions": {
             "FUNCTION_INHERIT": "function FUNCTION_INHERIT() {\n        VARIABLE_BASE = VARIABLE_BASE;\n        return FUNCTION_BASE();\n    }"

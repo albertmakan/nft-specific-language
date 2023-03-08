@@ -46,9 +46,9 @@ def process_imported_solidity_file(package_import: PackageImport):
         if isFileImport:
             check_file_path(file_path)
 
-            input, input_lines = load_solidity_file(file_path)
+            input = load_solidity_file(file_path)
 
-            file_sol_data = extract_sol_data(input, input_lines)
+            file_sol_data = extract_sol_data(input)
             sol_data = merge_data(sol_data, file_sol_data)
 
             parent_file_path = os.path.dirname(file_path.replace('"', ''))

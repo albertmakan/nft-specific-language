@@ -1,7 +1,10 @@
 import re
 from solidity_parser import parser
 
-def extract_sol_data(input, input_lines):
+def extract_sol_data(input):
+
+  input = remove_comments(input)
+  input_lines = [line + '\n' for line in input.split('\n')]
 
   contracts = extract_sol_contracts(input)
   sourceUnit = parser.parse(input.replace('{{', '"{').replace('}}', '}"'), loc=True)
@@ -33,78 +36,74 @@ def extract_sol_data(input, input_lines):
 
   return contracts
 
+def remove_comments(string: str):
+  comment_regex = re.compile(r"(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)", re.MULTILINE | re.DOTALL) 
+  return comment_regex.sub(lambda match: '' if match.group(2) else match.group(1), string)
 
 # -------- Utility funkcije za extrakciju koda i formiranje json iz solidity koda --------
 def eat_word(text):
-  chars = []
-  for char in text:
-    if char in [' ', '(', '{']:
-      return "".join(chars)
+  for i, char in enumerate(text):
+    if char not in [' ', '(', '{']:
+      continue
 
-    chars.append(char)
+    return text[:i]
 
 def extract_sol_contracts(code):
-  contract_start_positions = [match.start(0) for match in re.finditer(r"contract .*(is|\{)", code)]
+  contract_start_positions = [match.start(0) for match in re.finditer(r"contract\s+\w+\s*(is|\{)", code)]
   contracts = extract_chucks(code, contract_start_positions)
 
-  return { eat_word(contract.replace("contract ", "")): contract for contract in contracts }
+  return { eat_word(re.sub(r"contract\s+", "", contract)): contract for contract in contracts }
 
 def extract_sol_functions(code):
-  function_start_positions = [match.start(0) for match in re.finditer(r"function .*\(", code)]
+  function_start_positions = [match.start(0) for match in re.finditer(r"function\s+\w+\s*\(", code)]
   functions = extract_chucks(code, function_start_positions)
 
-  return { eat_word(function.replace("function ", "")): function for function in functions }
+  return { eat_word(re.sub(r"function\s+", "", function)): function for function in functions }
 
 def extract_sol_modifiers(code):
-  modifiers_start_positions = [match.start(0) for match in re.finditer(r"modifier .*", code)]
+  modifiers_start_positions = [match.start(0) for match in re.finditer(r"modifier\s+\w+\s*", code)]
   modifiers = extract_chucks(code, modifiers_start_positions)
 
-  return { eat_word(modifier.replace("modifier ", "")): modifier for modifier in modifiers }
+  return { eat_word(re.sub(r"modifier\s+", "", modifier)): modifier for modifier in modifiers }
 
 def extract_sol_structs(code):
-  struct_start_positions = [match.start(0) for match in re.finditer(r"struct .*\{", code)]
+  struct_start_positions = [match.start(0) for match in re.finditer(r"struct\s+\w+\s*\{", code)]
   structs = extract_chucks(code, struct_start_positions)
 
-  return { eat_word(struct.replace("struct ", "")): struct for struct in structs }
+  return { eat_word(re.sub(r"struct\s+", "", struct)): struct for struct in structs }
 
 def extract_sol_events(code):
-  event_start_positions = [match.start(0) for match in re.finditer(r"event .*\(", code)]
+  event_start_positions = [match.start(0) for match in re.finditer(r"event\s+\w+\s*\(", code)]
   events = extract_till_char(code, event_start_positions, ';')
 
-  return { eat_word(event.replace("event ", "")): event for event in events }
+  return { eat_word(re.sub(r"event\s+", "", event)): event for event in events }
 
-def extract_chucks(code, positions):
+def extract_chucks(code: str, positions: list):
   chunks = []
   for start_position in positions:
+    end_position = start_position
     bracket_counter = 0
-    chuck_chars = []
-    for char in code[start_position:-1]:
-      chuck_chars.append(char)
+    in_str = False
+    q = ''
+    for char in code[start_position:]:
+      end_position += 1
+      if char == '"' or char == "'":
+        if not q or q == char:
+          in_str = not in_str
+        q = char if in_str else ''
+      if in_str:
+        continue
       if char == '{':
         bracket_counter += 1
-
-      if char == '}':
+      elif char == '}':
         if bracket_counter == 1:
           break
-
         bracket_counter -= 1
-
-    chunks.append("".join(chuck_chars))
-
+    chunks.append(code[start_position:end_position])
   return chunks
 
 def extract_till_char(code, positions, last_char):
-  chunks = []
-  for start_position in positions:
-    chuck_chars = []
-    for char in code[start_position:-1]:
-      chuck_chars.append(char)
-      if char == last_char:
-        break
-
-    chunks.append("".join(chuck_chars))
-
-  return chunks
+  return [code[start_position:code.find(last_char, start_position)+1] for start_position in positions]
     
 def extract_state_variables(contractAST, code_lines):
   state_variables = {}

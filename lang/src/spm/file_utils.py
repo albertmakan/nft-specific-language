@@ -12,10 +12,8 @@ def load_local_packages():
 def load_solidity_file(file_path):
     with open(file_path.replace('"', ''), "r") as fp:
         input = fp.read()
-        fp.seek(0)
-        input_lines = fp.readlines()
 
-        return input, input_lines
+        return input
 
 def load_package(package_name, package_version):
     with open("{0}_{1}.json".format(package_name, package_version), "r") as fp:
