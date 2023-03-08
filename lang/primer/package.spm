@@ -1,20 +1,36 @@
 packages {
   // using drugih package-a ostavljamo za kraj
-  using std.token.numeric as numeric
-  using custom.equity.sales as sales
-  using std.single_owner
-  using std.multiple_owners
+  // using std.token.numeric as numeric
+  // using custom.equity.sales as sales
   
+  using primer
+  using primer.parent
+
   using "./S1.sol" as S1
-  using "./S2.sol" as S2
+  // using "./S2.sol" as S2
 }
 
-package primer {
-    S1 {
-        numeric.add
-        S1.transfer
+// S1.transfer2
+// S1.transfer
+// S1.DepositContract
+
+package primer2 {
+    parent { 
+        S1 {
+            
+            // primer.parent.S1.costic
+
+            @modifier parent.S1.costic.costic
+
+            // S1.transfer2 as costic2
+            // S1.S1.transfer2 as transferFromContract
+            // @modifier S1.S1.costs as costic
+            // @struct S1.S1.Nikola as transfer
+            // S1.S1.MILOSPANIC
+            // @contract S1.S1
+
+        }
     }
-    S2 {
-        S2.transfer2
-    }
+   
+    // S2.parent
 }

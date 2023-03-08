@@ -1,0 +1,107 @@
+{
+    "@global": {
+        "events": {},
+        "functions": {
+            "approve2": {
+                "contracts": [
+                    "ERC20"
+                ],
+                "functions": [
+                    "approve3"
+                ]
+            }
+        },
+        "modifiers": {},
+        "structs": {
+            "Nik123ola": {
+                "contracts": [
+                    "ERC721"
+                ],
+                "structs": [
+                    "Nemanja"
+                ]
+            }
+        },
+        "variables": {}
+    },
+    "ERC20": {
+        "events": {},
+        "functions": {
+            "transfer": {
+                "contracts": [
+                    "ERC721"
+                ],
+                "events": [
+                    "DepositContract"
+                ],
+                "functions": [
+                    "approve3"
+                ],
+                "structs": [
+                    "Milos"
+                ],
+                "variables": [
+                    "balanceOf"
+                ]
+            },
+            "transferFrom": {
+                "variables": [
+                    "balanceOf",
+                    "allowance"
+                ]
+            }
+        },
+        "modifiers": {},
+        "structs": {
+            "Milos": {
+                "structs": [
+                    "Nemanja"
+                ]
+            }
+        },
+        "variables": {}
+    },
+    "ERC721": {
+        "events": {},
+        "functions": {},
+        "modifiers": {},
+        "structs": {},
+        "variables": {}
+    },
+    "ERCBASE": {
+        "events": {},
+        "functions": {},
+        "modifiers": {},
+        "structs": {},
+        "variables": {}
+    },
+    "ERCINHERIT": {
+        "events": {},
+        "functions": {
+            "FUNCTION_INHERIT": {
+                "functions": [
+                    "FUNCTION_BASE"
+                ],
+                "variables": [
+                    "VARIABLE_BASE"
+                ]
+            }
+        },
+        "modifiers": {},
+        "structs": {
+            "STRUCT_INHERIT": {
+                "structs": [
+                    "STRUCT_BASE"
+                ]
+            }
+        },
+        "variables": {}
+    },
+    "IERC20": {
+        "events": {},
+        "functions": {},
+        "modifiers": {},
+        "structs": {},
+        "variables": {}
+    }
+}

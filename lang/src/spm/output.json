@@ -1,0 +1,101 @@
+{
+    "@global": {
+        "base": null,
+        "code": "\npragma solidity ^0.8.17;\n\nstruct Nemanja {\n    uint8 x;\n}\n\n\nstruct Nik123ola {\n    ERC721 x;\n    Nemanja n;\n}\n\nfunction approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}\n\nfunction approve3(address spender) returns (bool) {\n    return true;\n}\n\n\n\n\n\n\n\n\n\n\n",
+        "events": {},
+        "functions": {
+            "approve2": "function approve2(address spender) returns (bool) {\n    approve3(spender);\n    ERC20.Milos nikola;\n    return true;\n}",
+            "approve3": "function approve3(address spender) returns (bool) {\n    return true;\n}"
+        },
+        "imports": [],
+        "modifiers": {},
+        "structs": {
+            "Nemanja": "struct Nemanja {\n    uint8 x;\n}",
+            "Nik123ola": "struct Nik123ola {\n    ERC721 x;\n    Nemanja n;\n}"
+        },
+        "variables": {}
+    },
+    "ERC20": {
+        "base": null,
+        "code": "contract ERC20 {\n\n\n    event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);\n\n    uint256 public totalSupply;\n    mapping(\n        address =>uint256\n    ) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n    string public name = \"Solidity by Example\";\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n    Milos public milos;\n    ERC20 public milos20CAO;\n\n    struct Milos {\n        Nemanja x;\n    }\n\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        string minuta = \"nesto\" + approve3();\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }\n\n    \n    \n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }\n\n     modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }\n}",
+        "events": {
+            "DepositContract": "event DepositContract(address indexed _from, bytes32 indexed _id, Nikola _value);"
+        },
+        "functions": {
+            "transfer": "function transfer(address recipient, uint256 amount)\n        external\n        returns (bool)\n    {\n        ERC721 nikolica = new ERC721();\n        Milos m = Milos(2);\n        string minuta = \"nesto\" + approve3();\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit DepositContract(msg.sender, recipient, amount);\n\n        return true;\n    }",
+            "transferFrom": "function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }"
+        },
+        "modifiers": {
+            "costs": "modifier costs(uint price) {\n      if (msg.value >= price) {\n         _;\n      }\n   }"
+        },
+        "structs": {
+            "Milos": "struct Milos {\n        Nemanja x;\n    }"
+        },
+        "variables": {
+            "allowance": "mapping(address => mapping(address => uint256)) public allowance;",
+            "balanceOf": "mapping(\n        address =>uint256\n    ) public balanceOf;",
+            "decimals": "uint8 public decimals = 18;",
+            "milos": "Milos public milos;",
+            "milos20CAO": "ERC20 public milos20CAO;",
+            "name": "string public name = \"Solidity by Example\";",
+            "symbol": "string public symbol = \"SOLBYEX\";",
+            "totalSupply": "uint256 public totalSupply;"
+        }
+    },
+    "ERC721": {
+        "base": null,
+        "code": "contract ERC721 {\n\n    string public symbol = \"SOLBYEX\";\n    uint8 public decimals = 18;\n\n    function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }\n\n    function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }\n}",
+        "events": {},
+        "functions": {
+            "burn": "function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }",
+            "mint": "function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }"
+        },
+        "modifiers": {},
+        "structs": {},
+        "variables": {
+            "decimals": "uint8 public decimals = 18;",
+            "symbol": "string public symbol = \"SOLBYEX\";"
+        }
+    },
+    "ERCBASE": {
+        "base": null,
+        "code": "contract ERCBASE {\n\n    struct STRUCT_BASE {\n        string basee;\n    }\n\n    string public VARIABLE_BASE = \"NESTO\";\n\n    function FUNCTION_BASE() {\n        return true;\n    }\n}",
+        "events": {},
+        "functions": {
+            "FUNCTION_BASE": "function FUNCTION_BASE() {\n        return true;\n    }"
+        },
+        "modifiers": {},
+        "structs": {
+            "STRUCT_BASE": "struct STRUCT_BASE {\n        string basee;\n    }"
+        },
+        "variables": {
+            "VARIABLE_BASE": "string public VARIABLE_BASE = \"NESTO\";"
+        }
+    },
+    "ERCINHERIT": {
+        "base": "ERCBASE",
+        "code": "contract ERCINHERIT is ERCBASE {\n\n    struct STRUCT_INHERIT {\n        STRUCT_BASE inherited;\n    }\n\n    STRUCT_BASE public VARIABLE_INHERIT;\n\n    function FUNCTION_INHERIT() {\n        VARIABLE_BASE = VARIABLE_BASE;\n        return FUNCTION_BASE();\n    }\n}",
+        "events": {},
+        "functions": {
+            "FUNCTION_INHERIT": "function FUNCTION_INHERIT() {\n        VARIABLE_BASE = VARIABLE_BASE;\n        return FUNCTION_BASE();\n    }"
+        },
+        "modifiers": {},
+        "structs": {
+            "STRUCT_INHERIT": "struct STRUCT_INHERIT {\n        STRUCT_BASE inherited;\n    }"
+        },
+        "variables": {
+            "VARIABLE_INHERIT": "STRUCT_BASE public VARIABLE_INHERIT;"
+        }
+    },
+    "IERC20": {
+        "base": null,
+        "code": "contract IERC20 {\n    event DepositBase(address indexed _from, bytes32 indexed _id, Nikola _value);\n}",
+        "events": {
+            "DepositBase": "event DepositBase(address indexed _from, bytes32 indexed _id, Nikola _value);"
+        },
+        "functions": {},
+        "modifiers": {},
+        "structs": {},
+        "variables": {}
+    }
+}

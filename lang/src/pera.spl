@@ -1,15 +1,7 @@
-_local_packages {
-  package numeric.minting
-  package numeric.balanceChecking
-  package numeric.burning
-  package numeric.transfering
-  package std.token.destroy
-  package std.token.create
-}
-
 // test comment
 packages {
   using std.token.numeric as numeric
+  using std.token as t
   using custom.equity.sales as sales
   using std.single_owner
   using std.multiple_owners
@@ -23,7 +15,7 @@ contract Brojko combines {
 }
 
 contract UROSPREDICJELEGENDA combines {
-  std.single_owner
+  single_owner
 }
 
 contract Skemer combines {
@@ -31,7 +23,7 @@ contract Skemer combines {
 }
 
 administration {
-  managed by std.single_owner with "$contract_creator" owner and "necar" pera having partial access {
+  managed by single_owner with "$contract_creator" owner and "necar" pera having partial access {
     to Brojko {
       numeric.minting
       numeric.balanceChecking
@@ -42,14 +34,14 @@ administration {
       sales.eq
     }
   }
-  extended by std.multiple_owners with "Milutin" owner having partial access {
+  extended by multiple_owners with "Milutin" owner having partial access {
     to Brojko {
-      token.createToken with 3 ownersAgreed
+      t.createToken with 3 ownersAgreed
     }
   }
-  extended by std.multiple_owners with "Milutin" owner having partial access {
+  extended by multiple_owners with "Milutin" owner having partial access {
     to UROSPREDICJELEGENDA {
-      token.createToken with 3 ownersAgreed
+      t.createToken with 3 ownersAgreed
     }
   }
 }
