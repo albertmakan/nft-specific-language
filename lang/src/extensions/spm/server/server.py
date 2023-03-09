@@ -24,15 +24,17 @@ import os
 
 from lsprotocol.types import (TEXT_DOCUMENT_COMPLETION, TEXT_DOCUMENT_DID_CHANGE,
                               TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
-                              TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL)
+                              TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
+                              TEXT_DOCUMENT_DEFINITION)
 from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,
 
-                              CompletionItemKind, InsertTextMode,
-
+                              CompletionItemKind,
+                              Location,
                               CompletionParams, ConfigurationItem,
                               Diagnostic,
                               DidChangeTextDocumentParams,
                               DidCloseTextDocumentParams,
+                              DefinitionParams,
                               DidOpenTextDocumentParams, MessageType, Position,
                               Range, Registration, RegistrationParams,
                               SemanticTokens, SemanticTokensLegend, SemanticTokensParams,
@@ -101,21 +103,6 @@ def _validate_spm(source):
         diagnostics.append(d)
 
     return diagnostics
-
-
-# @spm_server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[',']))
-# def completions(params: Optional[CompletionParams] = None) -> CompletionList:
-#     """Returns completion items."""
-#     return CompletionList(
-#         is_incomplete=False,
-#         items=[
-#             CompletionItem(label='"'),
-#             CompletionItem(label='['),
-#             CompletionItem(label=']'),
-#             CompletionItem(label='{'),
-#             CompletionItem(label='}'),
-#         ]
-#     )
 
 def _extract_base_file_path(uri: str):
     uri_tokens = uri.split('/')
@@ -191,6 +178,8 @@ HAS_ALIAS_REGEX = re.compile("^.*\s+as\s+.*")
 
 EXPORT_TYPE_REGEX = re.compile("@(function|modifier|struct|contract|event)\s*")
 
+IMPORT_REGEX = re.compile("[a-zA-Z0-9_.-]*")
+DEFINITION_REGEX = re.compile("^using\s+[a-zA-Z0-9_.-]*\s+as\s+([a-zA-Z0-9_.-]*)")
 
 def find_possible_file_imports(uri, current_input):
     inputed_path = re.sub(USING_FILE_IMPORT_REGEX, '',
@@ -374,27 +363,24 @@ def get_exports_from_contract(sol_data, contract):
     return exports
 
 
-@spm_server.command(SpmLanguageServer.CMD_COUNT_DOWN_BLOCKING)
-def count_down_10_seconds_blocking(ls, *args):
-    """Starts counting down and showing message synchronously.
-    It will `block` the main thread, which can be tested by trying to show
-    completion items.
-    """
-    for i in range(COUNT_DOWN_START_IN_SECONDS):
-        ls.show_message(f'Counting down... {COUNT_DOWN_START_IN_SECONDS - i}')
-        time.sleep(COUNT_DOWN_SLEEP_IN_SECONDS)
+@spm_server.feature(TEXT_DOCUMENT_DEFINITION)
+def find_reference(ls, params: DefinitionParams):
 
+    uri = params.text_document.uri
+    document = ls.workspace.get_document(uri)
+    origin_pos = params.position
+    origin_line = origin_pos.line
+    origin_varname = document.word_at_position(origin_pos)
 
-@spm_server.command(SpmLanguageServer.CMD_COUNT_DOWN_NON_BLOCKING)
-async def count_down_10_seconds_non_blocking(ls, *args):
-    """Starts counting down and showing message asynchronously.
-    It won't `block` the main thread, which can be tested by trying to show
-    completion items.
-    """
-    for i in range(COUNT_DOWN_START_IN_SECONDS):
-        ls.show_message(f'Counting down... {COUNT_DOWN_START_IN_SECONDS - i}')
-        await asyncio.sleep(COUNT_DOWN_SLEEP_IN_SECONDS)
-
+    for i in range(1,origin_line+1):
+        current_line = document.lines[i].strip()
+        match_import = re.match(DEFINITION_REGEX,current_line)
+        if match_import and match_import.group(1) == origin_varname:
+            definition_start = document.lines[i].find(origin_varname)
+            definition_end = definition_start + len(origin_varname)    
+            target_range = Range(start = Position(line=i,character=definition_start),end=Position(line=i,character=definition_end))
+            return Location(uri=uri,range=target_range)
+    return None
 
 @spm_server.feature(TEXT_DOCUMENT_DID_CHANGE)
 def did_change(ls, params: DidChangeTextDocumentParams):
@@ -557,15 +543,3 @@ def show_configuration_thread(ls: SpmLanguageServer, *args):
         ls.show_message_log(f'Error ocurred: {e}')
 
 
-@spm_server.command(SpmLanguageServer.CMD_UNREGISTER_COMPLETIONS)
-async def unregister_completions(ls: SpmLanguageServer, *args):
-    """Unregister completions method on the client."""
-    params = UnregistrationParams(unregisterations=[
-        Unregistration(id=str(uuid.uuid4()), method=TEXT_DOCUMENT_COMPLETION)
-    ])
-    response = await ls.unregister_capability_async(params)
-    if response is None:
-        ls.show_message('Successfully unregistered completions method')
-    else:
-        ls.show_message('Error happened during completions unregistration.',
-                        MessageType.Error)
