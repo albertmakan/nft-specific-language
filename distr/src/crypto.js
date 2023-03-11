@@ -1,30 +1,34 @@
-import * as secp from "@noble/secp256k1";
+import secp256k1 from "secp256k1";
 import crypto from "crypto";
 
-export async function verifySignature(publicKeyStr, signatureStr, messageStr) {
-  const messageHash = await secp.utils.sha256(messageStr);
-  const signature = Buffer.from(signatureStr, "hex");
-  const publicKey = Buffer.from(publicKeyStr, "hex");
-  return secp.verify(signature, messageHash, publicKey);
+export function verifySignature(
+  publicKeyHexStr,
+  signatureHexDERStr,
+  messageStr
+) {
+  if (!publicKeyHexStr.startsWith("04")) {
+    publicKeyHexStr = `04${publicKeyHexStr}`;
+  }
+  const messageHashHexString = crypto
+    .createHash("sha256")
+    .update(messageStr)
+    .digest()
+    .toString("hex");
+  const signatureUint8Array = fromHexString(signatureHexDERStr);
+  const parsedSignature = secp256k1.signatureImport(signatureUint8Array);
+  const normalizedSignature = secp256k1.signatureNormalize(parsedSignature);
+  const publicKey = fromHexString(publicKeyHexStr);
+  const messageHash = fromHexString(messageHashHexString);
+  return secp256k1.ecdsaVerify(normalizedSignature, messageHash, publicKey);
 }
 
-// NOTE: used for manual testing
-async function example(name, author, version, privkey) {
-  const msg = `${name}${author}${version}`;
+const fromHexString = (hexString) =>
+  Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
-  // // Generate a new ECDSA key pair
-  const ec = crypto.createECDH("secp256k1");
-  ec.generateKeys();
-  const privateKey = privkey ? Buffer.from(privkey, "hex") : ec.getPrivateKey();
-
-  const messageHash = await secp.utils.sha256(msg);
-
-  const publicKey = secp.getPublicKey(privateKey);
-  const signature = await secp.sign(messageHash, privateKey);
-
-  console.log("Public key: ", Buffer.from(publicKey).toString("hex"));
-  console.log("Private key: ", privateKey.toString("hex"));
-  console.log("Signature: ", Buffer.from(signature).toString("hex"));
-}
-
-// await example("lala", "bjelicaluka", "1.0.1", "4d1305cb806a398bbc31a99989cbea0f2d0ddd82681d7ce3105f996c867e1870");
+// console.log(
+//   verifySignature(
+//     "01ec36537e5729e6f86a9f08cc77a6fb5a8990b327e870413b02cac8c253079fbb6dd910611fc803247587372f0a34bf871d798493efbe88f1321259686e3b1d",
+//     "3045022065679d8d15a501a8787d6f3380c435e849de8c07e39f9d0efe955f50988ae3950221009593624c6eaf5cbdc10832d63c08bee3a9fce36df4d42416724cd2956feae417",
+//     "caos"
+//   )
+// );
