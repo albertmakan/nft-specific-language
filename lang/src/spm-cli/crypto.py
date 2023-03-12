@@ -1,29 +1,13 @@
-import ecdsa
-from hashlib import sha256
+from ellipticcurve.ecdsa import Ecdsa
+from ellipticcurve.privateKey import PrivateKey
 
 
-def generate_key_pair():
-  priv_key = ecdsa.SigningKey.generate(curve = ecdsa.SECP256k1)
-  pub_key = priv_key.get_verifying_key()
-
-  return priv_key.to_string().hex(), pub_key.to_string().hex()
+def generate_keys():
+  private_key = PrivateKey()
+  return private_key.toString(), private_key.publicKey().toString()
 
 
-def create_signature(priv_key_string, text):
-  priv_key = ecdsa.SigningKey.from_string(
-      bytes.fromhex(priv_key_string),
-      curve = ecdsa.SECP256k1,
-      hashfunc = sha256
-    )
-  
-  return priv_key.sign(str.encode(text)).hex()
+def sign_message(private_key_hex_string: str, message: str):
+  privateKey = PrivateKey.fromString(private_key_hex_string)
+  return Ecdsa.sign(message, privateKey).toDer().hex()
 
-
-def verify_signature(pub_key_string, signature, text):
-  pub_key = ecdsa.VerifyingKey.from_string(
-    bytes.fromhex(pub_key_string),
-    curve = ecdsa.SECP256k1,
-    hashfunc = sha256
-  )
-  
-  return pub_key.verify(bytes.fromhex(signature), str.encode(text))

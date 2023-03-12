@@ -3,7 +3,7 @@ from jinja2 import Environment, BaseLoader
 from input_utils import take_input
 from validation_utils import is_version_valid
 from constants import SPM_PACKAGES_PATH, PACKAGE_JSON_PATH
-from crypto import generate_key_pair
+from crypto import generate_keys
 
 
 initial_package_template = '''
@@ -21,7 +21,7 @@ package {{name}}
 @click.command()
 def init():
   name, author, version = read_package_data()
-  priv_key, pub_key = generate_key_pair()
+  priv_key, pub_key = generate_keys()
 
   create_spm_packages()
   create_package_definition(name)
