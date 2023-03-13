@@ -1,4 +1,4 @@
-from model import Construct, ContractAdministrator, ContractDefinition, Method, PackageSection, Parameters, Percentage, Script
+from .model import Construct, ContractAdministrator, ContractDefinition, Method, PackageSection, Parameters, Percentage, Script
 
 
 def _find_package_section(construct: Construct):

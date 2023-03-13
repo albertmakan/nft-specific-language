@@ -1,7 +1,7 @@
-import os
-from generator import generate
 from spl import Script
 from textx import generator
+
+from .contract_generator import generate
 
 __version__ = "0.1.0.dev"
 

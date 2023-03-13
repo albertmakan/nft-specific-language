@@ -1,6 +1,7 @@
 from typing import Any, Optional, List
 from dataclasses import dataclass
 
+
 @dataclass
 class Construct:
     parent: Any

@@ -1,7 +1,8 @@
-from model import Construct
-from model_utils import find_root
 from textx import get_location, TextXSemanticError
             
+from .model import Construct
+from .model_utils import find_root
+
 
 class SyntacticError(TextXSemanticError):
     def __init__(self, message, construct: Construct):            

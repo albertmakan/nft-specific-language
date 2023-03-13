@@ -1,9 +1,13 @@
 import os
-from obj_processors import package_import_processor, package_import_section_processor, package_export_section_processor, package_export_processor
 from textx import language, metamodel_from_file
-from model import *
+
+from .obj_processors import package_import_processor, package_import_section_processor, package_export_section_processor, package_export_processor
+from .model import *
+
 __version__ = "0.1.0.dev"
+
 _classes = (PackageImport, PackageImportSection, PackageExport, PackageExportSection, Script)
+
 
 @language('spm', '*.spm')
 def spm_language():

@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 from typing import Dict, List, Set
-from constants import *
-from spl import Script, AddressSet, Percentage, Address
 import re
+
+from spl.model import Script, AddressSet, Percentage, Address
+from .constants import *
 
 package_cache = {}
 
