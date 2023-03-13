@@ -8,6 +8,7 @@ packages {
 }
 
 contract Brojko combines {
+  t.createToken with 3 ownersAgreed
   numeric.minting
   numeric.balanceChecking
   numeric.burning
@@ -16,10 +17,11 @@ contract Brojko combines {
 
 contract UROSPREDICJELEGENDA combines {
   single_owner
+  t.createToken with 3 ownersAgreed
 }
 
 contract Skemer combines {
-  sales.eq with 10% equity and 1% fee and "necar" pera and "and" panic
+  sales.eq with 10% equity and 1 % fee and "necar" pera and 56 panic
 }
 
 administration {
@@ -34,14 +36,17 @@ administration {
       sales.eq
     }
   }
-  extended by multiple_owners with "Milutin" owner having partial access {
+  extended by multiple_owners with [
+    0x1111111111111111111111111111111111111111,
+    0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  ] owners having partial access {
     to Brojko {
-      t.createToken with 3 ownersAgreed
+      t.createToken
     }
   }
   extended by multiple_owners with "Milutin" owner having partial access {
     to UROSPREDICJELEGENDA {
-      t.createToken with 3 ownersAgreed
+      t.createToken
     }
   }
 }
