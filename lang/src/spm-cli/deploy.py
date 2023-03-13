@@ -3,7 +3,7 @@ import click, json, os, requests
 from constants import SEARCH_INDEX_API_URL
 from package_json_utils import load_package_json, validate_package_metadata
 from input_utils import take_input
-from crypto import create_signature
+from crypto import sign_message
 
 @click.command()
 def deploy():
@@ -12,7 +12,7 @@ def deploy():
   package_content = load_package_content(f'{package_metadata["name"]}.json')
 
   priv_key = take_input("Package private key")
-  signature = create_signature(priv_key, package_metadata["name"] + package_metadata["author"] + package_metadata["version"])
+  signature = sign_message(priv_key, package_metadata["name"] + package_metadata["author"] + package_metadata["version"])
 
   data = {
     "name": package_metadata["name"],
