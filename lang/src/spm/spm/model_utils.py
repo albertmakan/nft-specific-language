@@ -1,5 +1,6 @@
-from model import Script, Construct, PackageImport, PackageExport
-from file_utils import is_file
+from .model import Script, Construct, PackageImport, PackageExport
+from .file_utils import is_file
+
 
 def find_root(construct: Construct) -> Script:
     c: Construct = construct

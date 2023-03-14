@@ -1,9 +1,10 @@
 import json
 from typing import List
 from textx import generator
-from model import Script, PackageImport, PackageExport
-from package_code_generator import generate_package_code, find_all_exported_items
-from model_utils import find_import
+
+from spm.model import Script, PackageImport, PackageExport
+from spm.model_utils import find_import
+from .package_code_generator import generate_package_code, find_all_exported_items
 
 __version__ = "0.1.0.dev"
 
@@ -11,14 +12,8 @@ __version__ = "0.1.0.dev"
 def spm_generate_solidity(metamodel, model, output_path, overwrite, debug, **custom_args):
     "Generator for generating solidity json from spm descriptions"
 
-    # output_file = get_output_filename(model.file_name, output_path, '*.spm')
-    # gen_file(model.file_name, output_file,
-    #          partial(generator_callback, model, output_file),
-    #          overwrite,
-    #          success_message='To convert to png run "dot -Tpng -O {}"'
-    #          .format(os.path.basename(output_file)))
-
     generator_callback(model, output_path, overwrite)
+
 
 def generator_callback(model: Script, output_file: str, overwrite: bool):
     """

@@ -1,6 +1,7 @@
 import re
 from solidity_parser import parser
 
+
 def extract_sol_data(input):
 
   input = remove_comments(input)

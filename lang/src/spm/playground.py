@@ -1,8 +1,9 @@
 import json, time
-from file_utils import load_solidity_file
-from merge import merge_data_with_dependencies
-from sol_code_extractions import extract_sol_data 
-from sol_dependency_analysers import form_dependencies
+
+from spm.file_utils import load_solidity_file
+from spm.merge import merge_data_with_dependencies
+from spm.sol_code_extractions import extract_sol_data 
+from spm.sol_dependency_analysers import form_dependencies
 # from package_generator import find_all_exported_items, generate_package
 
 

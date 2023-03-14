@@ -1,17 +1,17 @@
 import os
 from typing import List
-from errors import SyntacticError, errorHandlerWrapper
-from model import PackageExport, PackageExportSection, PackageImportSection, PackageImport
 
-from sol_code_extractions import extract_sol_data
-from sol_dependency_analysers import form_dependencies
-from merge import merge_data_with_dependencies, merge_data
-from file_utils import load_local_packages, load_solidity_file, load_package, check_file_path, is_file
-from model_utils import find_import, compute_package_alias, compute_exported_name
+from .errors import SyntacticError, errorHandlerWrapper
+from .model import PackageExport, PackageExportSection, PackageImportSection, PackageImport
+from .sol_code_extractions import extract_sol_data
+from .sol_dependency_analysers import form_dependencies
+from .merge import merge_data_with_dependencies, merge_data
+from .file_utils import load_local_packages, load_solidity_file, load_package, check_file_path, is_file
+from .model_utils import find_import, compute_package_alias, compute_exported_name
 
 
-solidity_files = { }
-local_packages = load_local_packages()
+solidity_files = {}
+local_packages = None
 
 # -------------------- PACKAGE IMPORT SECTION PROCESSOR --------------------
 
@@ -68,18 +68,18 @@ def process_imported_solidity_file(package_import: PackageImport):
     package_import.data = merged_sol_data
 
 def process_imported_spm_package(package_import: PackageImport):
+    if not local_packages:
+        load_local_packages()
+
     package_name = package_import.id.split(".")[0]
-    _check_local_package(package_import, package_name)
+    if package_name not in local_packages:
+        raise SyntacticError(f"{package_name} is not installed", package_import)
 
     package = load_package(package_name, local_packages[package_name])
     _check_package_namespace(package_import, package, package_import.id)
 
     solidity_files[package_import.alias] = package
     package_import.data = package
-
-def _check_local_package(package_import: PackageImport, package_name: str):
-    if package_name not in local_packages:
-        raise SyntacticError(f"{package_name} is not installed", package_import)
 
 def _check_package_namespace(package_import, package, package_namespace):
     namespace_parts = package_namespace.split(".")

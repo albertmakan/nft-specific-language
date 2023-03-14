@@ -1,8 +1,8 @@
 import os
-from obj_processors import contract_admin_processor, method_processor, package_processor, percent_processor, contract_processor
 from textx import language, metamodel_from_file
 
-from model import *
+from .obj_processors import contract_admin_processor, method_processor, package_processor, percent_processor, contract_processor
+from .model import *
 
 __version__ = "0.1.0.dev"
 
