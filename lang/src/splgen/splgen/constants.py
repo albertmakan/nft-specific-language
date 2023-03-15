@@ -8,3 +8,9 @@ VARIABLES = 'variables'
 STRUCTS = 'structs'
 EVENTS = 'events'
 GLOBAL = '@global'
+DEFINITION = "definition"
+SOL_CODE = "solidity_code"
+PACKAGES = "packages"
+
+SPM_PACKAGES_PATH = "spm_packages"
+PACKAGE_JSON_PATH = "package.json"

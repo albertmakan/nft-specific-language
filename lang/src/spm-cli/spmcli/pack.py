@@ -1,5 +1,5 @@
 import click, os
-from package_json_utils import load_package_json
+from .package_json_utils import load_package_json
 
 
 @click.command()

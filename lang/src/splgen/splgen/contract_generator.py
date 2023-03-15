@@ -8,6 +8,7 @@ from spl.model import Script, AddressSet, Percentage, Address
 from .constants import *
 
 package_cache = {}
+packages_v: Dict[str,str] = None
 
 
 def generate(model: Script, output_file: str):
@@ -132,6 +133,7 @@ class Contract:
     name: str
 
     def resolve_code_and_dependencies(self, globals: Set[Dependency]):
+        load_package_json()
         for fun in self.functions.values():
             try:
                 self._resolve(fun, globals)
@@ -149,7 +151,8 @@ class Contract:
         pack_name, *path, func_name = fun.name.split('.')
 
         if not pack_name in package_cache:
-            with open(f'{pack_name}.json') as pack:
+            v = packages_v[pack_name]
+            with open(f'{SPM_PACKAGES_PATH}/{pack_name}_{v}.json') as pack:
                 package_cache[pack_name] = json.load(pack)
         package = package_cache[pack_name]
 
@@ -231,6 +234,13 @@ def find_contract_dependencies(_package: dict, c_name: str, globals: Set[Depende
                         continue
                     dep = _package[GLOBAL][dep_type].get(name, None)
                     globals.add(Dependency(name, dep[CODE], dep_type, p))
+
+
+def load_package_json():
+    global packages_v
+    if not packages_v:
+        with open(PACKAGE_JSON_PATH) as pack:
+            packages_v = json.load(pack)[PACKAGES]
 
 
 # TODO:

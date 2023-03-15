@@ -1,9 +1,9 @@
 import click
-from init import init
-from deploy import deploy
-from install import install
-from version import version
-from pack import pack
+from .init import init
+from .deploy import deploy
+from .install import install
+from .version import version
+from .pack import pack
 
 @click.group()
 def cli():
