@@ -17,5 +17,7 @@ def init(name: str):
         os.makedirs(SPM_PACKAGES_PATH)
         print(f'{SPM_PACKAGES_PATH} is created')
 
-    shutil.copy2(os.path.join(templates_path, 'std.json'),
+    shutil.copy2(os.path.join(templates_path, 'std_1.0.0.json'),
                  SPM_PACKAGES_PATH)
+
+    shutil.copy2(os.path.join(templates_path, 'package.json'), '.')
