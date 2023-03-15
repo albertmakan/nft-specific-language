@@ -149,7 +149,7 @@ class Contract:
         pack_name, *path, func_name = fun.name.split('.')
 
         if not pack_name in package_cache:
-            with open(f'{pack_name}.json') as pack:
+            with open(f'{SPM_PACKAGES_PATH}/{pack_name}.json') as pack:
                 package_cache[pack_name] = json.load(pack)
         package = package_cache[pack_name]
 

@@ -8,3 +8,5 @@ VARIABLES = 'variables'
 STRUCTS = 'structs'
 EVENTS = 'events'
 GLOBAL = '@global'
+
+SPM_PACKAGES_PATH = "spm_packages"

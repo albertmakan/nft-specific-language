@@ -1,7 +1,7 @@
 import json, os, requests
 import click
-from constants import SPM_PACKAGES_PATH, SEARCH_INDEX_API_URL, IPFS_NODE_URL
-from package_json_utils import save_package_json, load_package_json
+from .constants import SPM_PACKAGES_PATH, SEARCH_INDEX_API_URL, IPFS_NODE_URL
+from .package_json_utils import save_package_json, load_package_json
 
 
 package_json = None

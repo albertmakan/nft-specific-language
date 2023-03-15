@@ -1,6 +1,6 @@
 import click
-from validation_utils import is_version_valid
-from package_json_utils import load_package_json, save_package_json, validate_package_metadata
+from .validation_utils import is_version_valid
+from .package_json_utils import load_package_json, save_package_json, validate_package_metadata
 
 package_json = None
 package_metadata = None

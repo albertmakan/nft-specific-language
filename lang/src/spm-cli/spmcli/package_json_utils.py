@@ -1,7 +1,6 @@
-
 import json, os
-from constants import PACKAGE_JSON_PATH
-from validation_utils import is_version_valid
+from .constants import PACKAGE_JSON_PATH
+from .validation_utils import is_version_valid
 
 
 def load_package_json():

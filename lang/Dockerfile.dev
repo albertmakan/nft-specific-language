@@ -18,6 +18,8 @@ RUN pip3 install -e src/spm
 RUN pip3 install -e src/spmgen
 RUN pip3 install -e src/spl
 RUN pip3 install -e src/splgen
+RUN pip3 install -e src/spm-cli
+RUN pip3 install -e src/spl-cli
 
 # install git
 RUN apk update

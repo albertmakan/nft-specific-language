@@ -1,9 +1,9 @@
 import os, json, click
 from jinja2 import Environment, BaseLoader
-from input_utils import take_input
-from validation_utils import is_version_valid
-from constants import SPM_PACKAGES_PATH, PACKAGE_JSON_PATH
-from crypto import generate_keys
+from .input_utils import take_input
+from .validation_utils import is_version_valid
+from .constants import SPM_PACKAGES_PATH, PACKAGE_JSON_PATH
+from .crypto import generate_keys
 
 
 initial_package_template = '''

@@ -1,9 +1,8 @@
-
 import click, json, os, requests
-from constants import SEARCH_INDEX_API_URL
-from package_json_utils import load_package_json, validate_package_metadata
-from input_utils import take_input
-from crypto import sign_message
+from .constants import SEARCH_INDEX_API_URL
+from .package_json_utils import load_package_json, validate_package_metadata
+from .input_utils import take_input
+from .crypto import sign_message
 
 @click.command()
 def deploy():
