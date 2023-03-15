@@ -15,8 +15,7 @@ function getClientOptions(): LanguageClientOptions {
     return {
         // Register the server for plain text documents
         documentSelector: [
-            { scheme: "file", language: "spm" },
-            { scheme: "untitled", language: "spm" },
+            { scheme: "file", language: "spm" }
         ],
         outputChannelName: "[pygls] SpmLanguageServer",
         synchronize: {

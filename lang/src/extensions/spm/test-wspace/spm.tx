@@ -1,0 +1,32 @@
+Script:
+    (imports=PackageImportSection)?
+    package=PackageExportSection
+;
+
+PackageImportSection:
+    'packages' '{' packages*=PackageImport '}'
+;
+PackageImport:
+    'using' id=PackageId ('as' alias=ID)? (data=/@/)?
+;
+PackageId:
+    FQN | FilePath
+;
+
+FQN: ID+['.'];
+
+FilePath: /\".*sol\"/;
+
+PackageExportSection:
+    'package' name=ID '{' exports*=PackageExport '}'
+;
+
+PackageExport:
+    (package_name=ID '{' exports*=PackageExport '}') | ((export_type=ExportType)? export_name=FQN ('as' export_alias=ID)?)
+;
+
+ExportType:
+    '@function' | '@struct' | '@contract' | '@event' | '@modifier'
+;
+
+Comment: /\/\/.*$/;
