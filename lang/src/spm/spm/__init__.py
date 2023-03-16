@@ -20,7 +20,6 @@ def spm_language():
         'PackageExportSection': package_export_section_processor,
         'PackageExport': package_export_processor,
     })
-    mm.skip_errors = True
 
     # Here if necessary register object processors or scope providers
     # http://textx.github.io/textX/stable/metamodel/#object-processors

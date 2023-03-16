@@ -19,13 +19,7 @@ def generator_callback(model: Script, output_file: str, overwrite: bool):
     """
     A generator function that produce output_file from model.
     """
-    if "errors" in dir(model):
-        for error in model.errors:
-            print(dir(error.construct))
-            print(error.construct._tx_obj_attrs)
-
-        return 
-
+    
     package_output = { 
         'definition': {},
         'solidity_code': {}

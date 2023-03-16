@@ -1,0 +1,11 @@
+packages {
+    // using panic.parent as Milos
+    using pera as Milos1
+    using "./nesto.sol" as Milos
+}
+
+package perica {
+    // @modifier Milos.S1
+    // @modifier Milos
+    @modifier Milos.S1.costs
+}

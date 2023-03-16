@@ -1,0 +1,56 @@
+{
+    "Init file": {
+    "prefix": "init",
+    "body": [
+      "packages {}",
+      "contract $1 combines {}",
+      "administration {} "
+  ],
+    "description": "Init file with basic structures"
+  },
+  "contract": {
+    "prefix": "contract",
+    "body": [
+      "contract $1 combines {",
+      "\t$2",
+      "}"
+    ],
+    "description": "define contract"
+  },
+    "administration": {
+    "prefix": "administration",
+    "body": [
+      "administration {",
+      "\t",
+      "}"
+    ],
+    "description": "define contract"
+  },
+  "managed by": {
+    "prefix": "managed",
+    "body": [
+      "managed by $1 $2 {",
+      "\t",
+      "}"
+    ],
+    "description": "define managed by"
+  },
+    "extended by": {
+    "prefix": "extended",
+    "body": [
+      "extended by $1 $2 {",
+      "\t",
+      "}"
+    ],
+    "description": "define extended by"
+  },
+      "to": {
+    "prefix": "to",
+    "body": [
+      "to $1 {",
+      "\t$2",
+      "}"
+    ],
+    "description": "define to"
+  }
+}
