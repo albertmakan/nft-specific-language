@@ -1,55 +1,29 @@
-############################################################################
-# Copyright(c) Open Law Library. All rights reserved.                      #
-# See ThirdPartyNotices.txt in the project root for additional notices.    #
-#                                                                          #
-# Licensed under the Apache License, Version 2.0 (the "License")           #
-# you may not use this file except in compliance with the License.         #
-# You may obtain a copy of the License at                                  #
-#                                                                          #
-#     http: // www.apache.org/licenses/LICENSE-2.0                         #
-#                                                                          #
-# Unless required by applicable law or agreed to in writing, software      #
-# distributed under the License is distributed on an "AS IS" BASIS,        #
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. #
-# See the License for the specific language governing permissions and      #
-# limitations under the License.                                           #
-############################################################################
-import asyncio
 import json
 import re
-import time
-import uuid
-from json import JSONDecodeError
 import os
-
+from spm import language_server
+from textx import TextXSyntaxError
 from lsprotocol.types import (TEXT_DOCUMENT_COMPLETION, TEXT_DOCUMENT_DID_CHANGE,
                               TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
                               TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
                               TEXT_DOCUMENT_DEFINITION)
-from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,
-
+from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,\
                               CompletionItemKind,
                               Location,
                               CompletionParams, ConfigurationItem,
-                              Diagnostic,
+                              Diagnostic,DiagnosticSeverity,
                               DidChangeTextDocumentParams,
                               DidCloseTextDocumentParams,
                               DefinitionParams,
                               DidOpenTextDocumentParams, MessageType, Position,
                               Range, Registration, RegistrationParams,
                               SemanticTokens, SemanticTokensLegend, SemanticTokensParams,
-                              Unregistration, UnregistrationParams,
-                              WorkDoneProgressBegin, WorkDoneProgressEnd,
-                              WorkDoneProgressReport,
-                              WorkspaceConfigurationParams)
+)
 from pygls.server import LanguageServer
+from server.regexs import (USING_FILE_IMPORT_REGEX, USING_PACKAGE_IMPORT_REGEX, USING_REGEX, HAS_ALIAS_REGEX, ALIAS_REGEX, WHITE_SPACE, EXPORT_TYPE_REGEX, DEFINITION_REGEX)
 
 from server.sol_file_utils import extract_solidity_data_from_file
-
-COUNT_DOWN_START_IN_SECONDS = 10
-COUNT_DOWN_SLEEP_IN_SECONDS = 1
-
-
+from server.completion_utils import form_auto_complition_response, find_possible_file_imports
 class SpmLanguageServer(LanguageServer):
     CMD_COUNT_DOWN_BLOCKING = 'countDownBlocking'
     CMD_COUNT_DOWN_NON_BLOCKING = 'countDownNonBlocking'
@@ -65,44 +39,60 @@ class SpmLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
 
-
 spm_server = SpmLanguageServer('spm-language-support', 'v0.1')
 
+mm = language_server.create_mm()
 
-def _validate(ls, params):
-    ls.show_message_log('Validating spm...')
+def load_local_packages_v2():
+    package_json_path = os.path.join(spm_server.workspace.root_path, "package.json")
+    with open(package_json_path, "r") as fp:
+        package_json = json.loads(fp.read())
+        if "packages" in package_json:
+            return package_json["packages"]
+    return None
+
+def create_diagnostic(err):
+    msg = err.message
+    col = err.col
+    line = err.line
+    d = Diagnostic(
+        range=Range(
+            start=Position(line=line - 1, character=0),
+            end=Position(line=line - 1, character=80),
+        ),
+        message=msg,
+        source=type(spm_server).__name__,
+        severity=DiagnosticSeverity.Error
+    )
+    return d
+
+def _validate(ls:SpmLanguageServer, params):
 
     text_doc = ls.workspace.get_document(params.text_document.uri)
-
     source = text_doc.source
+
+    language_server.change_packages(load_local_packages_v2())
+    language_server.change_path(ls.workspace.root_path)
     diagnostics = _validate_spm(source) if source else []
-
     ls.publish_diagnostics(text_doc.uri, diagnostics)
-
 
 def _validate_spm(source):
     """Validates spm file."""
     diagnostics = []
-
     try:
-        json.loads(source)
-    except JSONDecodeError as err:
-        msg = "pera sisa"
-        col = 1
-        line = 2
-
-        d = Diagnostic(
-            range=Range(
-                start=Position(line=line - 1, character=col - 1),
-                end=Position(line=line - 1, character=col)
-            ),
-            message=msg,
-            source=type(spm_server).__name__
-        )
-
-        diagnostics.append(d)
-
+        #syntax
+        model = mm.model_from_str(source)
+    except TextXSyntaxError as err:
+        diagnostics.append(create_diagnostic(err))
+        return diagnostics
+    #semantics
+    if "errors" in dir(model):
+        for err in model.errors:
+            diagnostics.append(create_diagnostic(err))
     return diagnostics
+
+
+
 
 def _extract_base_file_path(uri: str):
     uri_tokens = uri.split('/')
@@ -114,11 +104,11 @@ package_definitions = {}
 solidity_files = {}
 
 
+
 def load_local_packages():
     global local_packages
     if local_packages is not None:
         return
-
     package_json_path = os.path.join(
         spm_server.workspace.root_path, "package.json")
     with open(package_json_path, "r") as fp:
@@ -154,42 +144,8 @@ def get_solidity_file(solidity_file):
 
     sol_data = extract_solidity_data_from_file(solidity_file)
     solidity_files[solidity_file] = sol_data
-
+    
     return sol_data
-
-
-def form_auto_complition_response(suggestions: list[str], suggestion_kind=CompletionItemKind.Folder):
-    items = [CompletionItem(label=suggestion, kind=suggestion_kind, sort_text=chr(
-        0) + suggestion.lower()) for suggestion in suggestions]
-    return CompletionList(
-        is_incomplete=False,
-        items=items,
-    )
-
-
-WHITE_SPACE = re.compile("^.*\s+")
-
-USING_REGEX = re.compile("^using\s+")
-USING_FILE_IMPORT_REGEX = re.compile("^using\s+\"")
-USING_PACKAGE_IMPORT_REGEX = re.compile("^using\s+")
-
-ALIAS_REGEX = re.compile("\s+as\s+")
-HAS_ALIAS_REGEX = re.compile("^.*\s+as\s+.*")
-
-EXPORT_TYPE_REGEX = re.compile("@(function|modifier|struct|contract|event)\s*")
-
-IMPORT_REGEX = re.compile("[a-zA-Z0-9_.-]*")
-DEFINITION_REGEX = re.compile("^using\s+[a-zA-Z0-9_.-]*\s+as\s+([a-zA-Z0-9_.-]*)")
-
-def find_possible_file_imports(uri, current_input):
-    inputed_path = re.sub(USING_FILE_IMPORT_REGEX, '',
-                          current_input).replace('"', '')
-
-    path = os.path.join(_extract_base_file_path(
-        uri), _extract_base_file_path(inputed_path)) + "/"
-
-    first_char = "/" if inputed_path.endswith('.') else ""
-    return [first_char + f.path.replace(path, '') for f in os.scandir(path) if f.is_dir() or f.path.endswith(".sol")]
 
 
 def find_possible_package_imports(current_input):
@@ -270,7 +226,6 @@ def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionLis
     current_col = params.position.character
 
     current_input = current_line[:current_col + 1]
-    ls.show_message_log(current_input)
 
     load_local_packages()
     aliasses = find_aliasses(doc.lines)
@@ -364,8 +319,7 @@ def get_exports_from_contract(sol_data, contract):
 
 
 @spm_server.feature(TEXT_DOCUMENT_DEFINITION)
-def find_reference(ls, params: DefinitionParams):
-
+def find_reference(ls:LanguageServer, params: DefinitionParams):
     uri = params.text_document.uri
     document = ls.workspace.get_document(uri)
     origin_pos = params.position
@@ -375,7 +329,7 @@ def find_reference(ls, params: DefinitionParams):
     for i in range(1,origin_line+1):
         current_line = document.lines[i].strip()
         match_import = re.match(DEFINITION_REGEX,current_line)
-        if match_import and match_import.group(1) == origin_varname:
+        if match_import and (match_import.group(1) == origin_varname or match_import.group(2) == origin_varname):
             definition_start = document.lines[i].find(origin_varname)
             definition_end = definition_start + len(origin_varname)    
             target_range = Range(start = Position(line=i,character=definition_start),end=Position(line=i,character=definition_end))
@@ -385,19 +339,19 @@ def find_reference(ls, params: DefinitionParams):
 @spm_server.feature(TEXT_DOCUMENT_DID_CHANGE)
 def did_change(ls, params: DidChangeTextDocumentParams):
     """Text document did change notification."""
-    # _validate(ls, params)
+    _validate(ls, params)
 
 
-@spm_server.feature(TEXT_DOCUMENT_DID_CLOSE)
-def did_close(server: SpmLanguageServer, params: DidCloseTextDocumentParams):
-    """Text document did close notification."""
-    server.show_message('Text Document Did Close')
+# @spm_server.feature(TEXT_DOCUMENT_DID_CLOSE)
+# def did_close(server: SpmLanguageServer, params: DidCloseTextDocumentParams):
+#     """Text document did close notification."""
+#     server.show_message('Text Document Did Close')
 
 
 @spm_server.feature(TEXT_DOCUMENT_DID_OPEN)
 async def did_open(ls, params: DidOpenTextDocumentParams):
     """Text document did open notification."""
-    ls.show_message('Text Document Did Open')
+    #TODO: proslediti path ka package.json ls.workspace.root_path
     _validate(ls, params)
 
 
@@ -439,107 +393,3 @@ def semantic_tokens(ls: SpmLanguageServer, params: SemanticTokensParams):
             last_start = start
 
     return SemanticTokens(data=data)
-
-
-@spm_server.command(SpmLanguageServer.CMD_PROGRESS)
-async def progress(ls: SpmLanguageServer, *args):
-    """Create and start the progress on the client."""
-    token = str(uuid.uuid4())
-    # Create
-    await ls.progress.create_async(token)
-    # Begin
-    ls.progress.begin(token, WorkDoneProgressBegin(
-        title='Indexing', percentage=0))
-    # Report
-    for i in range(1, 10):
-        ls.progress.report(
-            token,
-            WorkDoneProgressReport(message=f'{i * 10}%', percentage=i * 10),
-        )
-        await asyncio.sleep(2)
-    # End
-    ls.progress.end(token, WorkDoneProgressEnd(message='Finished'))
-
-
-@spm_server.command(SpmLanguageServer.CMD_REGISTER_COMPLETIONS)
-async def register_completions(ls: SpmLanguageServer, *args):
-    """Register completions method on the client."""
-    params = RegistrationParams(registrations=[
-        Registration(
-            id=str(uuid.uuid4()),
-            method=TEXT_DOCUMENT_COMPLETION,
-            register_options={"triggerCharacters": "[':']"})
-    ])
-    response = await ls.register_capability_async(params)
-    if response is None:
-        ls.show_message('Successfully registered completions method')
-    else:
-        ls.show_message('Error happened during completions registration.',
-                        MessageType.Error)
-
-
-@spm_server.command(SpmLanguageServer.CMD_SHOW_CONFIGURATION_ASYNC)
-async def show_configuration_async(ls: SpmLanguageServer, *args):
-    """Gets exampleConfiguration from the client settings using coroutines."""
-    try:
-        config = await ls.get_configuration_async(
-            WorkspaceConfigurationParams(items=[
-                ConfigurationItem(
-                    scope_uri='',
-                    section=SpmLanguageServer.CONFIGURATION_SECTION)
-            ]))
-
-        example_config = config[0].get('exampleConfiguration')
-
-        ls.show_message(
-            f'spmServer.exampleConfiguration value: {example_config}')
-
-    except Exception as e:
-        ls.show_message_log(f'Error ocurred: {e}')
-
-
-@spm_server.command(SpmLanguageServer.CMD_SHOW_CONFIGURATION_CALLBACK)
-def show_configuration_callback(ls: SpmLanguageServer, *args):
-    """Gets exampleConfiguration from the client settings using callback."""
-    def _config_callback(config):
-        try:
-            example_config = config[0].get('exampleConfiguration')
-
-            ls.show_message(
-                f'spmServer.exampleConfiguration value: {example_config}')
-
-        except Exception as e:
-            ls.show_message_log(f'Error ocurred: {e}')
-
-    ls.get_configuration(
-        WorkspaceConfigurationParams(
-            items=[
-                ConfigurationItem(
-                    scope_uri='',
-                    section=SpmLanguageServer.CONFIGURATION_SECTION)
-            ]
-        ),
-        _config_callback
-    )
-
-
-@spm_server.thread()
-@spm_server.command(SpmLanguageServer.CMD_SHOW_CONFIGURATION_THREAD)
-def show_configuration_thread(ls: SpmLanguageServer, *args):
-    """Gets exampleConfiguration from the client settings using thread pool."""
-    try:
-        config = ls.get_configuration(WorkspaceConfigurationParams(items=[
-            ConfigurationItem(
-                scope_uri='',
-                section=SpmLanguageServer.CONFIGURATION_SECTION)
-        ])).result(2)
-
-        example_config = config[0].get('exampleConfiguration')
-
-        ls.show_message(
-            f'spmServer.exampleConfiguration value: {example_config}')
-
-    except Exception as e:
-        ls.show_message_log(f'Error ocurred: {e}')
-
-
