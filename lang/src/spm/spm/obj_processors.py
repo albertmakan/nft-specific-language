@@ -1,11 +1,12 @@
 import os
 from typing import List
+import jsonmerge
 
-from .errors import SyntacticError, errorHandlerWrapper
+from .constants import *
+from .errors import raise_error, errorHandlerWrapper
 from .model import PackageExport, PackageExportSection, PackageImportSection, PackageImport
 from .sol_code_extractions import extract_sol_data
-from .sol_dependency_analysers import form_dependencies
-from .merge import merge_data_with_dependencies, merge_data
+from .sol_dependency_analysers import form_dependencies, find_contract_chain
 from .file_utils import load_local_packages, load_solidity_file, load_package, check_file_path, is_file
 from .model_utils import find_import, compute_package_alias, compute_exported_name
 
@@ -36,7 +37,7 @@ def package_import_section_processor(package_section: PackageImportSection):
     names = []
     for package in package_section.packages:
         if package.alias in names:
-            raise SyntacticError(f"Multiple imports with same name: '{package.alias}'", package)
+            raise_error(f"Multiple imports with same name: '{package.alias}'", package)
         names.append(package.alias)
 
 # ------------------------ PACKAGE IMPORT PROCESSOR -------------------------
@@ -52,6 +53,7 @@ def package_import_processor(package_import: PackageImport):
     
     process_imported_spm_package(package_import)
 
+
 def process_imported_solidity_file(package_import: PackageImport):
     sol_data = {}
     load_queue = [package_import.id]
@@ -66,25 +68,24 @@ def process_imported_solidity_file(package_import: PackageImport):
             check_file_path(file_path)
 
             input = load_solidity_file(file_path)
-
             file_sol_data = extract_sol_data(input)
-            sol_data = merge_data(sol_data, file_sol_data)
+            
+            sol_data = jsonmerge.merge(sol_data, file_sol_data)
 
             parent_file_path = os.path.dirname(file_path.replace('"', ''))
-            for imported_file in file_sol_data['@global']['imports']:
+            for imported_file in file_sol_data[GLOBAL][IMPORTS]:
                 if is_file(imported_file):
                     load_queue.append('"{0}"'.format(os.path.join(parent_file_path, imported_file.replace('"', ''))))
 
     # this is to remove interfaces
     for contract_data in sol_data.values():
-        if contract_data['base'] and contract_data['base'] not in sol_data:
-            contract_data['base'] = None
+        contract_data[BASE] = [name for name in contract_data[BASE] if name in sol_data]
 
-    dependencies = form_dependencies(sol_data)
-    merged_sol_data = merge_data_with_dependencies(sol_data, dependencies)
+    form_dependencies(sol_data)
 
-    solidity_files[package_import.alias] = merged_sol_data
-    package_import.data = merged_sol_data
+    solidity_files[package_import.alias] = sol_data
+    package_import.data = sol_data
+
 
 def process_imported_spm_package(package_import: PackageImport):
     package_name = package_import.id.split(".")[0]
@@ -100,7 +101,7 @@ def process_imported_spm_package(package_import: PackageImport):
 
 def _check_local_package(package_import: PackageImport, package_name: str):
     if package_name not in get_local_packages():
-        raise SyntacticError(f"{package_name} is not installed", package_import)
+        raise_error(f"{package_name} is not installed", package_import)
 
 def _check_package_namespace(package_import, package, package_namespace):
     namespace_parts = package_namespace.split(".")
@@ -110,12 +111,12 @@ def _check_package_namespace(package_import, package, package_namespace):
     current_package = package_definition
     for namespace_part in namespace_parts:
         if namespace_part not in current_package:
-            raise SyntacticError(f"{package_namespace} namespace is not defined in {package_name} package", package_import)
+            raise_error(f"{package_namespace} namespace is not defined in {package_name} package", package_import)
 
         current_package = current_package[namespace_part]
 
         if 'type' in current_package and 'path' in current_package:
-            raise SyntacticError(f"Solidity {current_package['type'][:-1]} {package_namespace} cannot be imported directly", package_import)
+            raise_error(f"Solidity {current_package['type'][:-1]} {package_namespace} cannot be imported directly", package_import)
 
 # -------------------- PACKAGE EXPORT SECTION PROCESSOR --------------------
 
@@ -137,7 +138,7 @@ def try_to_find_ambiguous_export(exports: List[PackageExport]):
         name = compute_exported_name(export)
 
         if name in defined_names:
-            raise SyntacticError(f"{name} is already defined", export)
+            raise_error(f"{name} is already defined", export)
 
         defined_names.append(name)
 
@@ -162,7 +163,7 @@ def print_package_export(export: PackageExport):
 @errorHandlerWrapper()
 def package_export_processor(export: PackageExport):
     if export.export_name is None and len(export.exports) == 0:
-        raise SyntacticError(f"Every namespace must have at least one export", export)
+        raise_error(f"Every namespace must have at least one export", export)
     
     if export.package_name:
         return
@@ -172,7 +173,7 @@ def package_export_processor(export: PackageExport):
 
     imported_package = find_import(export)
     if imported_package is None:
-        raise SyntacticError(f"Package '{export.export_name.split('.')[0]}' not found", export)
+        raise_error(f"Package '{export.export_name.split('.')[0]}' not found", export)
 
     if is_file(imported_package.id):
         process_export_from_file(export)
@@ -182,16 +183,16 @@ def package_export_processor(export: PackageExport):
 def process_export_from_file(export: PackageExport):
     export_name_tokens = export.export_name.split('.')
     if len(export_name_tokens) != 2 and export.export_type == '@contract':
-        raise SyntacticError(f"Export for contract must be PackageAlias.ContractName", export)
+        raise_error(f"Export for contract must be PackageAlias.ContractName", export)
 
     if len(export_name_tokens) != 3 and export.export_type == '@event':
-        raise SyntacticError(f"Export for event must be PackageAlias.ContractName.EventName", export)
+        raise_error(f"Export for event must be PackageAlias.ContractName.EventName", export)
 
     if len(export_name_tokens) != 3 and export.export_type == '@modifier':
-        raise SyntacticError(f"Export for modifier must be PackageAlias.ContractName.ModifierName", export)
+        raise_error(f"Export for modifier must be PackageAlias.ContractName.ModifierName", export)
 
     if len(export_name_tokens) not in [2, 3]:
-        raise SyntacticError(f"Export must be PackageAlias[.ContractName].SolidityTypeName", export)
+        raise_error(f"Export must be PackageAlias[.ContractName].SolidityTypeName", export)
     
 
     if export.export_type == '@contract':
@@ -209,23 +210,23 @@ def process_export_from_package(imported_package: PackageImport, export: Package
     for i, namespace_part in enumerate(namespace_parts):
         if namespace_part not in current_package:
             visided_namespace = '.'.join(namespace_parts[:i+1]) 
-            raise SyntacticError(f"{visided_namespace} namespace is not defined in {package_name} package", export)
+            raise_error(f"{visided_namespace} namespace is not defined in {package_name} package", export)
         current_package = current_package[namespace_part]
 
         if 'type' in current_package and 'path' in current_package:
-            raise SyntacticError(f"Expected namespace but got solidity {namespace_part} {current_package['type'][:-1]} instead", export)
+            raise_error(f"Expected namespace but got solidity {namespace_part} {current_package['type'][:-1]} instead", export)
 
     # check export
     if export_name not in current_package:
         full_namespace = '.'.join(namespace_parts)
-        raise SyntacticError(f"{export_name} does not exist in {full_namespace} namespace of {package_name} package", export)
+        raise_error(f"{export_name} does not exist in {full_namespace} namespace of {package_name} package", export)
 
     current_package = current_package[export_name]
     if 'type' not in current_package and 'path' not in current_package:
-        raise SyntacticError(f"{export_name} is a part of a namespace and not the solidity type", export)
+        raise_error(f"{export_name} is a part of a namespace and not the solidity type", export)
 
     if export.export_type != ('@' + current_package['type'][:-1]):
-        raise SyntacticError(f"Expected {export_name} to be {export.export_type[1:]} but is {current_package['type'][:-1]}", export)
+        raise_error(f"Expected {export_name} to be {export.export_type[1:]} but is {current_package['type'][:-1]}", export)
 
 
 def _check_if_contract_exists(export: PackageExport):
@@ -243,14 +244,13 @@ def _check_if_non_contract_exists(export: PackageExport):
 
 def _check_if_contract_exists_in_package(export: PackageExport, package_alias: str, contract_name: str):
     if contract_name not in solidity_files[package_alias]:
-        raise SyntacticError(f"Contract '{contract_name}' not found in package '{package_alias}'", export)
+        raise_error(f"Contract '{contract_name}' not found in package '{package_alias}'", export)
 
 def _check_if_solidity_type_exists_in_package(export: PackageExport, package_alias: str, contract_name: str, export_type: str, export_name: str):
     export_type = export_type.replace('@', '') + 's'
-    current_contract_name = contract_name
-    while current_contract_name is not None:
+    if export_name in solidity_files[package_alias][contract_name][export_type]:
+        return
+    for current_contract_name in find_contract_chain(contract_name, solidity_files[package_alias]):
         if export_name in solidity_files[package_alias][current_contract_name][export_type]:
             return
-        
-        current_contract_name = solidity_files[package_alias][current_contract_name]['base']
-    raise SyntacticError(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package", export)
+    raise_error(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package", export)
