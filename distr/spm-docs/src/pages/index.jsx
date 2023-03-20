@@ -15,7 +15,7 @@ function HomepageHeader() {
         <div className="py-10">
           <Link
             className="bg-white rounded-md text-gray-500 px-4 py-2"
-            to="/docs/intro"
+            to="/docs/getting-started/setup"
           >
             Get started with SPM in 5min ⏱️
           </Link>
