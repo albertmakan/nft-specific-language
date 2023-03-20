@@ -20,7 +20,7 @@ def extract_sol_data(sol_code: str):
     contracts[GLOBAL] = {
         FUNCTIONS: {s.name: extract_code(sol_code, s.loc) for s in source_object._node.children if s.type == 'FunctionDefinition'},
         STRUCTS: {s.name: extract_code(sol_code, s.loc) for s in source_object._node.children if s.type == 'StructDefinition'},
-        IMPORTS: [i.path for i in source_object.imports],
+        IMPORTS: ['"{0}"'.format(i.path) for i in source_object.imports],
         BASE: [], CODE: ''
     }
     return {k: v for k, v in contracts.items() if not CODE in v or not v[CODE].startswith("interface")}
