@@ -82,8 +82,8 @@ def generate(model: Script, output_file: str):
                     admin.method.name)
 
     for contract in contracts.values():
-        for fun in contract.functions.values():
-            fun.insert_modifiers()
+        contract.remove_redundant_dependencies()
+        contract.insert_modifiers()
 
     env = Environment(loader=BaseLoader)
     env.filters["sort_deps"] = lambda deps: sorted(list(deps), key=lambda d: (d.type, d.priority), reverse=True)
@@ -117,6 +117,7 @@ class Function:
     modifiers: Set[str]
     code: str = ""
     is_modifier: bool = False
+    name_in_code: str = ""
 
     def insert_params(self):
         for par in self.params:
@@ -130,14 +131,6 @@ class Function:
             fr'{{{{\s*\w+\s*:\s*\w+\s*}}}}', self.code)
         if left:
             raise Exception("Missing params:", left)
-        return self
-
-    def insert_modifiers(self):
-        to_insert = " ".join((m.split('.')[-1] for m in self.modifiers))
-        block_start = self.code.find('{')
-        returns_loc = self.code.find('returns', 0, block_start)
-        idx = returns_loc if returns_loc != -1 else block_start
-        self.code = self.code[:idx] + to_insert + self.code[idx-1:]
         return self
 
 
@@ -175,14 +168,17 @@ class Contract:
             current_block = current_block[key]
 
         result = t in current_block and current_block[t].get(func_name)
-        while not result:
-            base_name = current_block[BASE]
-            if not base_name:
-                raise Exception('Incorrect package')
+        base_names = current_block[BASE]
+        chain = find_contract_chain(path[-1], parent_block, base_names)
+        curr_name = path[-1]
+        for base_name in chain:
+            if result: break
             current_block = parent_block[base_name]
+            curr_name = base_name
             result = t in current_block and current_block[t].get(func_name)
 
         fun.code = result[CODE]
+        fun.name_in_code = func_name
 
         def find_dep(thing: dict):
             if DEPENDENCIES not in thing:
@@ -202,12 +198,12 @@ class Contract:
                         find_dep(dep)
                         continue
 
-                    base_name = current_block[BASE]
-                    while base_name:
-                        base = base_name and parent_block[base_name]
-                        dep = base and dep_type in base and base[dep_type].get(name)
+                    base_names = current_block[BASE]
+                    chain = find_contract_chain(curr_name, parent_block, base_names)
+                    for base_name in chain:
+                        base = parent_block[base_name]
+                        dep = dep_type in base and base[dep_type].get(name)
                         if dep: break
-                        base_name = base[BASE]
 
                     if dep:
                         self.dependencies.add(Dependency(name, dep[CODE], dep_type))
@@ -218,6 +214,23 @@ class Contract:
                     find_dep(dep)
 
         find_dep(result)
+
+    def insert_modifiers(self):
+        for fun in self.functions.values():
+            if not fun.modifiers:
+                continue
+            to_insert = " ".join((self.functions[m].name_in_code for m in fun.modifiers))
+            block_start = fun.code.find('{')
+            returns_loc = fun.code.find('returns', 0, block_start)
+            idx = returns_loc if returns_loc != -1 else block_start
+            fun.code = fun.code[:idx] + to_insert + fun.code[idx-1:]
+
+    def remove_redundant_dependencies(self):
+        for fun in self.functions.values():
+            d = Dependency(fun.name_in_code, fun.code, MODIFIERS if fun.is_modifier else FUNCTIONS)
+            if d in self.dependencies:
+                self.dependencies.remove(d)
+
 
 
 def format_param(param):
@@ -236,8 +249,8 @@ def format_param(param):
 def find_contract_dependencies(_package: dict, c_name: str, globals: Set[Dependency], p=0):
     contract = _package[c_name]
     p += 1
-    base_name = contract[BASE]
-    if base_name:
+    base_names = contract[BASE]
+    for base_name in base_names:
         globals.add(Dependency(base_name, _package[base_name][CODE], CONTRACTS, p))
         find_contract_dependencies(_package, base_name, globals, p)
     for thing_type in contract:
@@ -256,7 +269,7 @@ def find_contract_dependencies(_package: dict, c_name: str, globals: Set[Depende
                         globals.add(Dependency(name, c[CODE], dep_type, p))
                         find_contract_dependencies(_package, name, globals, p)
                         continue
-                    if name in contract[dep_type] or (base_name and name in _package[base_name][dep_type]):
+                    if name in contract[dep_type] or any((name in _package[base_name][dep_type] for base_name in base_names)):
                         continue
                     dep = _package[GLOBAL][dep_type][name]
                     globals.add(Dependency(name, dep[CODE], dep_type, p))
@@ -286,6 +299,15 @@ def get_packname_path_and_type(fqn: str) -> Tuple[str,str,str]:
         raise Exception(f"{fqn} not found.")
     
     return pack_name, current_block['path'], current_block['type']
+
+
+def find_contract_chain(contract_name: str, sol_data: dict, chain: list=None):
+    contracts = chain or []
+    bases = sol_data[contract_name][BASE]
+    contracts.extend(bases)
+    for bc in bases:
+        find_contract_chain(bc, sol_data, contracts)
+    return contracts
 
 
 # TODO:

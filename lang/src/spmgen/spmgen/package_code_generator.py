@@ -2,7 +2,7 @@
 def generate_package_code(sol_data, exported_items):
   package = {}
   for exported_item in exported_items:
-    contract, sol_item, sol_type = exported_item.split('_')
+    contract, sol_item, sol_type = exported_item
     contract_chain = _find_contract_chain_upwards(contract, sol_data)
     for contract_in_chain in contract_chain:
       if contract_in_chain not in package:
@@ -20,7 +20,7 @@ def generate_package_code(sol_data, exported_items):
 
 def find_all_exported_items(sol_data, exports):
   queue = [_compute_initial_queue_item(sol_data, export) for export in exports]
-  exported_items = []
+  exported_items = set()
 
   while len(queue):
     possible_contracts, item_name, item_type = queue.pop()
@@ -32,9 +32,7 @@ def find_all_exported_items(sol_data, exports):
         if item_type not in sol_data[contract] or item_name not in sol_data[contract][item_type]:
           continue
 
-        key = "{0}_{1}_{2}".format(contract, item_name, item_type)
-        if key not in exported_items:
-          exported_items.append(key)
+        exported_items.add((contract, item_name, item_type))
 
         if not "dependencies" in sol_data[contract][item_type][item_name]:
           continue
@@ -76,28 +74,23 @@ def _form_queue_items_for_dependency_other_then_contract(sol_data, contract, dep
   return [[dependency_possible_contracts, dependency_name, dependency_sol_type] for dependency_name in dependency_sol_items]
 
 
+def _find_contract_chain(contract_name: str, sol_data: dict, chain: list=None):
+    contracts = chain or [contract_name]
+    if contract_name == '@global':
+        return contracts
+    bases = sol_data[contract_name]['base']
+    contracts.extend(bases)
+    for bc in bases:
+        _find_contract_chain(bc, sol_data, contracts)
+    return contracts
+
+
 def _find_contract_chain_downwards(contract, sol_data, add_global = True):
-  contracts = []
-  current_contract = contract
-  while current_contract is not None:
-    contracts.append(current_contract)
-    current_contract = sol_data[current_contract]['base']
-
+  chain = _find_contract_chain(contract, sol_data)
   if contract != '@global' and add_global:
-    contracts.append('@global')
-
-  return contracts
+    chain.append('@global')
+  return chain
 
 def _find_contract_chain_upwards(contract, sol_data):
-  contracts = []
-  current_contract = contract
-  while current_contract is not None:
-    contracts.append(current_contract)
-    new_contract = None
-    for contract in sol_data:
-      if sol_data[contract]['base'] == current_contract:
-        new_contract = contract
-    current_contract = new_contract
-
-  return contracts
+  return _find_contract_chain(contract, sol_data)[::-1]
   

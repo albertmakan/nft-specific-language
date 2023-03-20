@@ -1,11 +1,12 @@
 import os
 from typing import List
+import jsonmerge
 
+from .constants import *
 from .errors import SyntacticError, errorHandlerWrapper
 from .model import PackageExport, PackageExportSection, PackageImportSection, PackageImport
 from .sol_code_extractions import extract_sol_data
 from .sol_dependency_analysers import form_dependencies
-from .merge import merge_data_with_dependencies, merge_data
 from .file_utils import load_local_packages, load_solidity_file, load_package, check_file_path, is_file
 from .model_utils import find_import, compute_package_alias, compute_exported_name
 
@@ -25,7 +26,7 @@ def package_import_section_processor(package_section: PackageImportSection):
 
 # ------------------------ PACKAGE IMPORT PROCESSOR -------------------------
 
-@errorHandlerWrapper()
+
 def package_import_processor(package_import: PackageImport):
     package_import.alias = compute_package_alias(package_import)
 
@@ -47,29 +48,30 @@ def process_imported_solidity_file(package_import: PackageImport):
             check_file_path(file_path)
 
             input = load_solidity_file(file_path)
-
             file_sol_data = extract_sol_data(input)
-            sol_data = merge_data(sol_data, file_sol_data)
+            
+            sol_data = jsonmerge.merge(sol_data, file_sol_data)
 
             parent_file_path = os.path.dirname(file_path.replace('"', ''))
-            for imported_file in file_sol_data['@global']['imports']:
+            for imported_file in file_sol_data[GLOBAL][IMPORTS]:
                 if is_file(imported_file):
                     load_queue.append('"{0}"'.format(os.path.join(parent_file_path, imported_file.replace('"', ''))))
 
     # this is to remove interfaces
     for contract_data in sol_data.values():
-        if contract_data['base'] and contract_data['base'] not in sol_data:
-            contract_data['base'] = None
+        contract_data[BASE] = [name for name in contract_data[BASE] if name in sol_data]
 
-    dependencies = form_dependencies(sol_data)
-    merged_sol_data = merge_data_with_dependencies(sol_data, dependencies)
+    form_dependencies(sol_data)
 
-    solidity_files[package_import.alias] = merged_sol_data
-    package_import.data = merged_sol_data
+    solidity_files[package_import.alias] = sol_data
+    package_import.data = sol_data
 
+
+# @errorHandlerWrapper()
 def process_imported_spm_package(package_import: PackageImport):
+    global local_packages
     if not local_packages:
-        load_local_packages()
+        local_packages = load_local_packages()
 
     package_name = package_import.id.split(".")[0]
     if package_name not in local_packages:
