@@ -88,24 +88,12 @@ def process_imported_solidity_file(package_import: PackageImport):
 
 # @errorHandlerWrapper()
 def process_imported_spm_package(package_import: PackageImport):
-<<<<<<< HEAD
-    global local_packages
-    if not local_packages:
-        local_packages = load_local_packages()
-
-    package_name = package_import.id.split(".")[0]
-    if package_name not in local_packages:
-        raise_error(f"{package_name} is not installed", package_import)
-
-    package = load_package(package_name, local_packages[package_name])
-=======
     package_name = package_import.id.split(".")[0]
     _check_local_package(package_import, package_name)
     
     spm_modules_path = os.path.join(base_path, "spm_packages")
     package = load_package(package_name, get_local_packages()[package_name], spm_modules_path)
         
->>>>>>> develop
     _check_package_namespace(package_import, package, package_import.id)
 
     solidity_files[package_import.alias] = package
@@ -113,7 +101,7 @@ def process_imported_spm_package(package_import: PackageImport):
 
 def _check_local_package(package_import: PackageImport, package_name: str):
     if package_name not in get_local_packages():
-        raise SyntacticError(f"{package_name} is not installed", package_import)
+        raise_error(f"{package_name} is not installed", package_import)
 
 def _check_package_namespace(package_import, package, package_namespace):
     namespace_parts = package_namespace.split(".")
@@ -265,10 +253,4 @@ def _check_if_solidity_type_exists_in_package(export: PackageExport, package_ali
     for current_contract_name in find_contract_chain(contract_name, solidity_files[package_alias]):
         if export_name in solidity_files[package_alias][current_contract_name][export_type]:
             return
-<<<<<<< HEAD
     raise_error(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package", export)
-=======
-        
-        current_contract_name = solidity_files[package_alias][current_contract_name]['base']
-    raise SyntacticError(f"{export_type[:-1]} '{export_name}' not found in contract '{contract_name}' of '{package_alias}' package", export)
->>>>>>> develop
