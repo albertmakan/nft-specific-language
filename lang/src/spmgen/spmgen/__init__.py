@@ -4,6 +4,7 @@ from textx import generator
 
 from spm.model import Script, PackageImport, PackageExport
 from spm.model_utils import find_import
+from spm.constants import GLOBAL
 from .package_code_generator import generate_package_code, find_all_exported_items
 
 __version__ = "0.1.0.dev"
@@ -32,7 +33,10 @@ def generator_callback(model: Script, output_file: str, overwrite: bool):
 
     for package_alias, exports in exports_per_package.items():
         exports_and_dependencies = find_all_exported_items(solidity_files[package_alias], exports)
-        package_output['solidity_code'][package_alias] = generate_package_code(solidity_files[package_alias], exports_and_dependencies)
+        package_code = generate_package_code(solidity_files[package_alias], exports_and_dependencies)
+        if GLOBAL not in package_code:
+            package_code[GLOBAL] = { 'base': [], 'code': '' }
+        package_output['solidity_code'][package_alias] = package_code
     package_output['definition'] = package_definition
 
     if not output_file.endswith(".json"):
