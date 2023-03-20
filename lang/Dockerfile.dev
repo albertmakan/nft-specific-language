@@ -14,12 +14,18 @@ RUN pip3 install solidity_parser
 RUN pip3 install jsonmerge
 RUN pip3 install starkbank-ecdsa
 
+RUN pip3 install pygls
+RUN pip install --force-reinstall -v "lsprotocol==2022.0.0a10"
+
 RUN pip3 install -e src/spm
 RUN pip3 install -e src/spmgen
 RUN pip3 install -e src/spl
 RUN pip3 install -e src/splgen
 RUN pip3 install -e src/spm-cli
 RUN pip3 install -e src/spl-cli
+
+# install npm for extension compile
+RUN apk add --update npm
 
 # install git
 RUN apk update
