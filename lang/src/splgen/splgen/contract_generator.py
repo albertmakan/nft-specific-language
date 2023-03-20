@@ -168,10 +168,8 @@ class Contract:
             current_block = current_block[key]
 
         result = t in current_block and current_block[t].get(func_name)
-        base_names = current_block[BASE]
-        chain = find_contract_chain(path[-1], parent_block, base_names)
         curr_name = path[-1]
-        for base_name in chain:
+        for base_name in find_contract_chain(path[-1], parent_block):
             if result: break
             current_block = parent_block[base_name]
             curr_name = base_name
@@ -198,17 +196,15 @@ class Contract:
                         find_dep(dep)
                         continue
 
-                    base_names = current_block[BASE]
-                    chain = find_contract_chain(curr_name, parent_block, base_names)
-                    for base_name in chain:
+                    for base_name in find_contract_chain(curr_name, parent_block):
                         base = parent_block[base_name]
                         dep = dep_type in base and base[dep_type].get(name)
                         if dep: break
-
                     if dep:
                         self.dependencies.add(Dependency(name, dep[CODE], dep_type))
                         find_dep(dep)
                         continue
+                    
                     dep = parent_block[GLOBAL][dep_type][name]
                     globals.add(Dependency(name, dep[CODE], dep_type))
                     find_dep(dep)

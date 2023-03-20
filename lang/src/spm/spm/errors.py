@@ -4,7 +4,7 @@ from .model import Construct
 from .model_utils import find_root
 
 
-class SyntacticError(TextXSemanticError):
+class SemanticError(TextXSemanticError):
     def __init__(self, message, construct: Construct):            
         super().__init__(message, **get_location(construct))
         
@@ -16,8 +16,8 @@ def errorHandlerWrapper():
         def aplicator(*args, **kwargs):
             try:
                 return f(*args, **kwargs)
-            except SyntacticError as syntacticError:
-                handle_custom_error(syntacticError)
+            except SemanticError as semanticError:
+                handle_custom_error(semanticError)
             except Exception:
                 if should_skip_error(args):
                     return
@@ -26,7 +26,7 @@ def errorHandlerWrapper():
     return decorate
 
 
-def handle_custom_error(exception: SyntacticError):
+def handle_custom_error(exception: SemanticError):
     root = find_root(exception.construct)
     if "errors" not in dir(root):
         root.errors = []
@@ -43,3 +43,10 @@ def should_skip_error(function_args):
             return True
     
     return False
+
+
+def raise_error(message: str, construct: Construct):
+    if "skip_errors" in dir(construct._tx_metamodel) and construct._tx_metamodel.skip_errors:
+        raise SemanticError(message, construct)
+
+    raise Exception(message)
