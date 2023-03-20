@@ -42,7 +42,7 @@ def package_import_section_processor(package_section: PackageImportSection):
 
 # ------------------------ PACKAGE IMPORT PROCESSOR -------------------------
 
-
+@errorHandlerWrapper()
 def package_import_processor(package_import: PackageImport):
     package_import.alias = compute_package_alias(package_import)
 
@@ -52,6 +52,7 @@ def package_import_processor(package_import: PackageImport):
         return
     
     process_imported_spm_package(package_import)
+
 
 def process_imported_solidity_file(package_import: PackageImport):
     sol_data = {}
@@ -86,7 +87,6 @@ def process_imported_solidity_file(package_import: PackageImport):
     package_import.data = sol_data
 
 
-# @errorHandlerWrapper()
 def process_imported_spm_package(package_import: PackageImport):
     package_name = package_import.id.split(".")[0]
     _check_local_package(package_import, package_name)
