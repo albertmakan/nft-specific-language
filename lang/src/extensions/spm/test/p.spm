@@ -1,7 +1,0 @@
-packages {
-  using import as package_alias
-}
-
-package pera {
-  
-}

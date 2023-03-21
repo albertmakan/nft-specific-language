@@ -43,7 +43,7 @@ spm_server = SpmLanguageServer('spm-language-support', 'v0.1')
 
 mm = language_server.create_mm()
 
-def load_local_packages(doc = None):
+def load_local_packages():
     try:
         package_json_path = os.path.join(spm_server.workspace.root_path, "package.json")
         with open(package_json_path, "r") as fp:
@@ -52,15 +52,6 @@ def load_local_packages(doc = None):
                 return package_json["packages"]
         return {}
     except:
-        d = Diagnostic(
-        range=Range(
-            start=Position(line=0, character=0),
-            end=Position(line=0, character=0),
-        ),
-        message="package.json not found",
-        source=type(spm_server).__name__,
-        severity=DiagnosticSeverity.Warning)
-        spm_server.publish_diagnostics(doc.uri,[d])
         return {}
 
 
@@ -80,14 +71,33 @@ def create_diagnostic(err):
     )
     return d
 
+def local_package_exist():
+    return os.path.isfile("package.json")
+def local_package_warning():
+    return Diagnostic(
+        range=Range(
+            start=Position(line=0, character=0),
+            end=Position(line=0, character=0),
+        ),
+        message="package.json not found",
+        source=type(spm_server).__name__,
+        severity=DiagnosticSeverity.Warning)
+
 def _validate(ls:SpmLanguageServer, params):
 
     text_doc = ls.workspace.get_document(params.text_document.uri)
     source = text_doc.source
 
-    language_server.change_packages(load_local_packages(text_doc))
+    diagnostics = []
+
+    if local_package_exist():
+        language_server.change_packages(load_local_packages())
+    else:
+        diagnostics.append(local_package_warning())
+        
     language_server.change_path(ls.workspace.root_path)
-    diagnostics = _validate_spm(source) if source else []
+    if source:
+        diagnostics.extend(_validate_spm(source))
     ls.publish_diagnostics(text_doc.uri, diagnostics)
 
 def _validate_spm(source):
@@ -118,13 +128,13 @@ package_definitions = {}
 solidity_files = {}
 
 
-def set_local_packages(doc = None):
+def set_local_packages():
     global local_packages
     if local_packages is not None:
         return
     if local_packages and len(local_packages):
         return
-    local_packages = load_local_packages(doc)
+    local_packages = load_local_packages()
 
 def get_package_definition(package_name):
 
@@ -220,38 +230,41 @@ def find_suggestion_from_package(current_line, package_alias, package):
 
     return [key for key in current_package.keys() if key not in ["path", "type"]]
 
-
-@spm_server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=['.', '/', '"', '@']))
-def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionList:
-    """Completion suggestions for character names."""
-
-    # TODO: NAPRAVITI NACIN DA NADJEMO JESMO LI U PACKAGE ILI NE
-
-    # load document
+def load_document(params):
     uri = params.text_document.uri.replace('file://', '')
-    doc = ls.workspace.get_document(params.text_document.uri)
+    doc = spm_server.workspace.get_document(params.text_document.uri)
     current_line = doc.lines[params.position.line].strip()
     current_col = params.position.character
-
     current_input = current_line[:current_col + 1]
+    return uri,doc,current_line,current_input
 
-    set_local_packages(params.text_document)
-    aliasses = find_aliasses(doc.lines)
 
+def using_completion(uri,current_input,current_line):
     if USING_FILE_IMPORT_REGEX.match(current_line):
         possible_imports = find_possible_file_imports(uri, current_input)
-
         return form_auto_complition_response(possible_imports)
 
     if USING_PACKAGE_IMPORT_REGEX.match(current_line):
         possible_imports = find_possible_package_imports(current_input)
-
         return form_auto_complition_response(possible_imports)
-
-    if current_line.startswith('@') and not WHITE_SPACE.match(current_line) and not EXPORT_TYPE_REGEX.match(current_line):
+    
+def type_completion(current_line):
+     if current_line.startswith('@') and not WHITE_SPACE.match(current_line) and not EXPORT_TYPE_REGEX.match(current_line):
         return form_auto_complition_response(['function', 'struct', 'contract', 'modifier', 'event'], CompletionItemKind.Class)
 
-    # ponudi aliase pa onda dalje
+@spm_server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=['.', '/', '"', '@']))
+def on_completion(params: CompletionParams) -> CompletionList:
+
+    uri,doc,current_line,current_input = load_document(params)
+    
+    set_local_packages()
+
+    aliasses = find_aliasses(doc.lines)
+
+    using_completion(uri,current_input,current_line)
+
+    type_completion(current_line)
+    
     should_suggest_aliasses = '.' not in current_line
     if should_suggest_aliasses:
         return form_auto_complition_response(aliasses.keys())
@@ -349,17 +362,8 @@ def did_change(ls, params: DidChangeTextDocumentParams):
     """Text document did change notification."""
     _validate(ls, params)
 
-
-# @spm_server.feature(TEXT_DOCUMENT_DID_CLOSE)
-# def did_close(server: SpmLanguageServer, params: DidCloseTextDocumentParams):
-#     """Text document did close notification."""
-#     server.show_message('Text Document Did Close')
-
-
 @spm_server.feature(TEXT_DOCUMENT_DID_OPEN)
 async def did_open(ls, params: DidOpenTextDocumentParams):
-    """Text document did open notification."""
-    #TODO: proslediti path ka package.json ls.workspace.root_path
     _validate(ls, params)
 
 
