@@ -10,19 +10,34 @@
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [{
-      "id": "spm",
-      "aliases": ["spm", "spm"],
-      "extensions": [".spm"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "spm",
-      "scopeName": "source.spm",
-      "path": "./syntaxes/spm.tmLanguage.json"
-    }]
+    "languages": [
+      {
+        "id": "spm",
+        "aliases": [
+          "spm",
+          "spm"
+        ],
+        "extensions": [
+          ".spm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "spm",
+        "scopeName": "source.spm",
+        "path": "./syntaxes/spm.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "spm",
+        "path": "./snippets/spm.code-snippets"
+      }
+    ]
   },
-    "main": "./client/out/extension",
+  "main": "./client/out/extension",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -b",

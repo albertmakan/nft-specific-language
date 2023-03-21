@@ -307,7 +307,7 @@ def get_exports_from_contract(sol_data, contract):
         contract_data = sol_data[current_contract]
 
         if "base" in contract_data and contract_data["base"] is not None:
-            inheritance_chain.append(contract_data["base"])
+            inheritance_chain.extend(contract_data["base"])
 
         for sol_type, sol_type_data in contract_data.items():
             if sol_type in ["base", "code", "variables", "imports"]:

@@ -1,7 +1,7 @@
 import os
 from spm.sol_code_extractions import extract_sol_data
 from spm.file_utils import load_solidity_file, check_file_path
-from spm.merge import merge_data
+import jsonmerge
 
 def extract_solidity_data_from_file(sol_file_path):
     sol_data = {}
@@ -16,7 +16,7 @@ def extract_solidity_data_from_file(sol_file_path):
             input = load_solidity_file(file_path)
 
             file_sol_data = extract_sol_data(input)
-            sol_data = merge_data(sol_data, file_sol_data)
+            sol_data = jsonmerge.merge(sol_data, file_sol_data)
 
             parent_file_path = os.path.dirname(file_path.replace('"', ''))
             for imported_file in file_sol_data['@global']['imports']:
@@ -26,8 +26,7 @@ def extract_solidity_data_from_file(sol_file_path):
 
     # this is to remove interfaces
     for contract_data in sol_data.values():
-        if contract_data['base'] and contract_data['base'] not in sol_data:
-            contract_data['base'] = None
+        contract_data['base'] = [name for name in contract_data['base'] if name in sol_data]
 
     return sol_data
 
