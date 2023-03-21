@@ -43,13 +43,27 @@ spm_server = SpmLanguageServer('spm-language-support', 'v0.1')
 
 mm = language_server.create_mm()
 
-def load_local_packages_v2():
-    package_json_path = os.path.join(spm_server.workspace.root_path, "package.json")
-    with open(package_json_path, "r") as fp:
-        package_json = json.loads(fp.read())
-        if "packages" in package_json:
-            return package_json["packages"]
-    return None
+def load_local_packages(doc = None):
+    try:
+        package_json_path = os.path.join(spm_server.workspace.root_path, "package.json")
+        with open(package_json_path, "r") as fp:
+            package_json = json.loads(fp.read())
+            if "packages" in package_json:
+                return package_json["packages"]
+        return {}
+    except:
+        d = Diagnostic(
+        range=Range(
+            start=Position(line=0, character=0),
+            end=Position(line=0, character=0),
+        ),
+        message="package.json not found",
+        source=type(spm_server).__name__,
+        severity=DiagnosticSeverity.Warning)
+        spm_server.publish_diagnostics(doc.uri,[d])
+        return {}
+
+
 
 def create_diagnostic(err):
     msg = err.message
@@ -71,7 +85,7 @@ def _validate(ls:SpmLanguageServer, params):
     text_doc = ls.workspace.get_document(params.text_document.uri)
     source = text_doc.source
 
-    language_server.change_packages(load_local_packages_v2())
+    language_server.change_packages(load_local_packages(text_doc))
     language_server.change_path(ls.workspace.root_path)
     diagnostics = _validate_spm(source) if source else []
     ls.publish_diagnostics(text_doc.uri, diagnostics)
@@ -104,18 +118,13 @@ package_definitions = {}
 solidity_files = {}
 
 
-
-def load_local_packages():
+def set_local_packages(doc = None):
     global local_packages
     if local_packages is not None:
         return
-    package_json_path = os.path.join(
-        spm_server.workspace.root_path, "package.json")
-    with open(package_json_path, "r") as fp:
-        package_json = json.loads(fp.read())
-        if "packages" in package_json:
-            local_packages = package_json["packages"]
-
+    if local_packages and len(local_packages):
+        return
+    local_packages = load_local_packages(doc)
 
 def get_package_definition(package_name):
 
@@ -170,7 +179,6 @@ def find_possible_package_imports(current_input):
 def find_aliasses(doc_lines):
     aliasses = {}
 
-    # TODO: DUPLICATE ALIASSES
     for line in doc_lines:
         line = line.strip()
         if not USING_REGEX.match(line):
@@ -227,7 +235,7 @@ def on_completion(ls: LanguageServer, params: CompletionParams) -> CompletionLis
 
     current_input = current_line[:current_col + 1]
 
-    load_local_packages()
+    set_local_packages(params.text_document)
     aliasses = find_aliasses(doc.lines)
 
     if USING_FILE_IMPORT_REGEX.match(current_line):

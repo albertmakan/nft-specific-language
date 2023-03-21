@@ -1,57 +1,167 @@
 {
-  "name": "spm",
-  "displayName": "spm",
-  "description": "SPM - Language Support",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.75.0"
-  },
-  "categories": [
-    "Programming Languages"
-  ],
-  "contributes": {
-    "languages": [
-      {
-        "id": "spm",
-        "aliases": [
-          "spm",
-          "spm"
-        ],
-        "extensions": [
-          ".spm"
-        ],
-        "configuration": "./language-configuration.json"
-      }
+    "name": "spm",
+    "displayName": "Spm",
+    "description": "Solidity Package Manager - Language Server",
+    "version": "0.3.0",
+    "serverInfo": {
+        "name": "Spm",
+        "module": "spm"
+    },
+    "publisher": "Siithub",
+    "license": "MIT",
+    "homepage": "https://github.com/albertmakan/nft-specific-language",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/albertmakan/nft-specific-language.git"
+    },
+    "bugs": {
+        "url": "https://github.com/albertmakan/nft-specific-language/issues"
+    },
+    "galleryBanner": {
+        "color": "#1e415e",
+        "theme": "dark"
+    },
+    "keywords": [
+        "Solidity",
+        "spm",
+        "spl"
     ],
-    "grammars": [
-      {
-        "language": "spm",
-        "scopeName": "source.spm",
-        "path": "./syntaxes/spm.tmLanguage.json"
-      }
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
     ],
-    "snippets": [
-      {
-        "language": "spm",
-        "path": "./snippets/spm.code-snippets"
-      }
-    ]
-  },
-  "main": "./client/out/extension",
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w"
-  },
-  "devDependencies": {
-    "@types/node": "^16.11.6",
-    "@types/vscode": "^1.62.0",
-    "@typescript-eslint/eslint-plugin": "^5.3.0",
-    "@typescript-eslint/parser": "^5.3.0",
-    "eslint": "^8.2.0",
-    "typescript": "^4.4.4"
-  },
-  "dependencies": {
-    "vscode-languageclient": "^7.0.0"
-  }
+    "extensionDependencies": [
+        "ms-python.python"
+    ],
+    "activationEvents": [
+        "workspaceContains:*.spm"
+    ],
+    "main": "./dist/extension.js",
+    "scripts": {
+        "vscode:prepublish": "npm run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "npm run compile-tests && npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "format-check": "prettier --check 'src/**/*.ts' 'build/**/*.yml' '.github/**/*.yml'",
+        "test": "node ./out/test/runTest.js",
+        "vsce-package": "vsce package -o spm.vsix"
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "spm",
+                "aliases": [
+                    "spm",
+                    "spm"
+                ],
+                "extensions": [
+                    ".spm"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "spm",
+                "scopeName": "source.spm",
+                "path": "./syntaxes/spm.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "properties": {
+                "spm.args": {
+                    "default": [],
+                    "description": "Arguments passed in. Each argument is a separate item in the array.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "scope": "resource",
+                    "type": "array"
+                },
+                "spm.path": {
+                    "default": [],
+                    "description": "When set to a path to spm binary, extension will use that. NOTE: Using this option may slowdown server response time.",
+                    "scope": "resource",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "spm.importStrategy": {
+                    "default": "fromEnvironment",
+                    "description": "Defines where `spm` is imported from. This setting may be ignored if `spm.path` is set.",
+                    "enum": [
+                        "useBundled",
+                        "fromEnvironment"
+                    ],
+                    "enumDescriptions": [
+                        "Always use the bundled version of `spm`.",
+                        "Use `spm` from environment, fallback to bundled version only if `spm` not available in the environment."
+                    ],
+                    "scope": "window",
+                    "type": "string"
+                },
+                "spm.interpreter": {
+                    "default": [],
+                    "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
+                    "scope": "window",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "spm.showNotifications": {
+                    "default": "off",
+                    "description": "Controls when notifications are shown by this extension.",
+                    "enum": [
+                        "off",
+                        "onError",
+                        "onWarning",
+                        "always"
+                    ],
+                    "enumDescriptions": [
+                        "All notifications are turned off, any errors or warning are still available in the logs.",
+                        "Notifications are shown only in the case of an error.",
+                        "Notifications are shown for errors and warnings.",
+                        "Notifications are show for anything that the server chooses to show."
+                    ],
+                    "scope": "machine",
+                    "type": "string"
+                }
+            }
+        },
+        "snippets": [
+            {
+                "language": "spm",
+                "path": "./snippets/spm.code-snippets"
+            }
+        ]
+    },
+    "dependencies": {
+        "fs-extra": "^11.1.0",
+        "vscode-languageclient": "^8.1.0"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.1",
+        "@types/vscode": "1.75.0",
+        "@types/glob": "^8.1.0",
+        "@types/node": "14.x",
+        "@typescript-eslint/eslint-plugin": "^5.54.0",
+        "@typescript-eslint/parser": "^5.54.0",
+        "@vscode/test-electron": "^2.3.0",
+        "eslint": "^8.35.0",
+        "glob": "^9.1.0",
+        "prettier": "^2.8.4",
+        "typescript": "^4.9.5",
+        "ts-loader": "^9.4.2",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^5.0.1",
+        "vsce": "^2.15.0"
+    }
 }
