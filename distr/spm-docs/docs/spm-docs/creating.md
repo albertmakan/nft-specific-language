@@ -25,13 +25,13 @@ You can import another package, based on the namespace. That is done with `using
 When using aliases, you must make sure that they are `unique`.
 :::
 
-Another kind of import is from a local file. By saying `using "./local_file.sol"`, you are importing a whole `Solidity` file with all it's definitions, structures and contracts.
+Another kind of import is from a local file. By saying `using "./local_file.sol"`, you are importing a whole `Solidity` file with all it's definitions, structures and contracts (inheritance and nested file imports are supported).
 
 #### Export Section
 
 In an export section of the package definition, you are able to define what other packages will be able to use. It is a public interface for other packages.
 
-You can define an arbitrary number of nested namesapces, and in those namespaces you can export a certain `feature`.
+You can define an arbitrary number of nested namespaces, and in those namespaces you can export a certain `feature`.
 
 Just like there are two types of imports, depending on them we can have two types of exports. They do have the same result, but the way you define them is a bit different.
 
@@ -69,3 +69,8 @@ package {{package_name}} {
   }
 }
 ```
+
+:::note
+Make sure to check our examples on the GitHub!
+:::
+
