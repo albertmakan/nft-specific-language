@@ -70,7 +70,7 @@ package {{package_name}} {
 }
 ```
 
-:::note
+:::info
 Make sure to check our examples on the GitHub!
 :::
 

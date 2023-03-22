@@ -84,3 +84,7 @@ administration {
 ```
 
 You can define one managed block and a number of extended blocks. These will result in additional modifiers to functions.
+
+:::info
+Make sure to check our examples on the GitHub!
+:::

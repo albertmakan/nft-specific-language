@@ -18,14 +18,12 @@ function DetailsPage() {
     }
   }, [packageName]);
 
-  console.log(packageVersions);
-
   return (
     <Layout>
-      <div className="w-full flex justify-center items-center mt-5 p-3">
+      <div className="w-full flex flex-col justify-center items-center mt-5 p-3">
         {packageVersions.map((v) => (
           <div className="flex gap-3">
-            <span>{v.cid}</span>
+            <a href={`https://gw.spm.bjelicaluka.com/ipfs/${v.cid}`} target="_blank">{v.cid}</a>
             <span>{v.author}</span>
             <span>{v.name}</span>
             <span>{v.version}</span>

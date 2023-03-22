@@ -11,15 +11,6 @@ The main goal is to improve DX (development experience) by introducing the conce
 
 <!-- truncate -->
 
-:::info
-`SPM` consists of three pieces:
-
-1. [Language](./creating.md) - for creating reusable packages
-2. [Registry](./deploying.md) - for distributing packages
-3. [CLI](./cli.md) - for using the tool
-
-:::
-
 Another very important thing that `SPM` wants to achieve is ensuring package integrity. In Ethereum, a very important property of Smart Contracts is their `immutability`, i.e. once deployed, they `can not` be updated. That makes Smart Contracts vulnerable to security issues and demands special caution from developers.
 
 This is why, security audits play a very important part in using someone else's code. The aim of `SPM` is to ensure the fact that once a specific package version is deployed, that's it - it `can not` be updated. Hence, a `package` has the same property as Smart Contracts. So that, if the community audits the specific version of a package, and determines that it is `safe to use`, `SPM` will ensure that it does not get modified or changed in any way.

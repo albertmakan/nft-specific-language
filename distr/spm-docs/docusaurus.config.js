@@ -8,10 +8,10 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "SPM",
   tagline: "Solidity Package Manager",
-  favicon: "img/favicon.ico",
+  favicon: "img/logo-dark.svg",
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-test-site.com",
+  url: "https://spm.bjelicaluka.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -60,6 +60,7 @@ const config = {
         logo: {
           alt: "SPM Logo",
           src: "img/logo.svg",
+          srcDark: "img/logo-dark.svg",
         },
         items: [
           {
@@ -74,12 +75,12 @@ const config = {
             position: "left",
             label: "Documentation",
           },
-          {
-            type: "doc",
-            docId: "api/spm-lang",
-            label: "API",
-            position: "left",
-          },
+          // {
+          //   type: "doc",
+          //   docId: "api/spm-lang",
+          //   label: "API",
+          //   position: "left",
+          // },
           { to: "/blog", label: "Blog", position: "left" },
           { to: "/search", label: "Search Packages", position: "right" },
           {

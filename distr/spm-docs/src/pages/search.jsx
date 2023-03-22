@@ -59,7 +59,7 @@ export default function () {
               <AuthorImage url={`https://github.com/${pkg.author}.png`} />
               <span className="text-sm">{pkg.author}</span>
               <span className="text-gray-500 dark:text-gray-100 text-xs pt-1">
-                package expires at {pkg.expirationDate}
+                package expires at {new Date(pkg.expirationDate).toLocaleString()}
               </span>
             </div>
           </div>
