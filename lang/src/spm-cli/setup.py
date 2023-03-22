@@ -5,7 +5,7 @@ setup(
     version='0.0.1',
     packages=find_packages(),
     install_requires=[
-        'Click', 'starkbank-ecdsa'
+        'Click', 'starkbank-ecdsa', 'jinja2', 'requests'
     ],
     entry_points='''
         [console_scripts]
