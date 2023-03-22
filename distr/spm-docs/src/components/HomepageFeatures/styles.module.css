@@ -5,7 +5,14 @@
   width: 100%;
 }
 
-.featureSvg {
+html[data-theme="dark"] .featureSvg {
   height: 200px;
   width: 200px;
+  fill: azure;
+}
+
+html[data-theme="light"] .featureSvg {
+  height: 200px;
+  width: 200px;
+  color: black;
 }
