@@ -1,0 +1,50 @@
+{
+  "name": "spl",
+  "displayName": "SPL",
+  "description": "SPL - Solidity Package Language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "spl",
+        "aliases": [
+          "SPL",
+          "spl"
+        ],
+        "extensions": [
+          ".spl"
+        ],
+        "icon": {
+          "dark": "logo-light.png",
+          "light": "logo-dark.png"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "spl",
+        "scopeName": "source.spl",
+        "path": "./syntaxes/spl.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "spl",
+        "path": "./snippets/spl.code-snippets"
+      }
+    ]
+  },
+  	"scripts": {
+		"vscode:prepublish": "cd client && npm install && cd .. && npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd .."
+	}
+}

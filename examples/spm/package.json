@@ -1,0 +1,11 @@
+{
+    "metadata": {
+        "author": "spm-team",
+        "name": "my_first_package",
+        "pubkey": "d67c744dd65dcf74aee30ffdaf50a292d618b7d0906a7e356a990127c3beb620d8107802f396dd764ad679bc34f8438c0eddf559ede5d911531ef28fe661c42a",
+        "version": "0.0.1"
+    },
+    "packages": {
+        "ownable": "1.0.0"
+    }
+}

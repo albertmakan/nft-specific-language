@@ -6,6 +6,7 @@ import z from "zod";
 import { addMonths } from "date-fns";
 import { testVersion, compareVersions } from "./utils.js";
 import { verifySignature } from "./crypto.js";
+import cors from "cors";
 
 // TODO: implement clustering logic
 // import * as PeerId from "@libp2p/peer-id";
@@ -18,6 +19,10 @@ import { verifySignature } from "./crypto.js";
 
 const app = express();
 const port = 3000;
+
+app.use(cors());
+
+app.use(express.static('spm-docs/build'))
 
 app.use(express.json());
 

@@ -30,7 +30,7 @@ spec:
         - name: regcred
       containers:
         - name: spm
-          image: cr.bjelicaluka.com/spm:0.0.1
+          image: cr.bjelicaluka.com/spm:0.0.3
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

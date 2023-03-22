@@ -1,0 +1,169 @@
+{
+  "definition": {
+    "std": {
+      "ERC20Constructor": {
+        "path": "C.ERC20.constructor",
+        "type": "functions"
+      },
+      "approve": {
+        "path": "C.ERC20.approve",
+        "type": "functions"
+      },
+      "burn": {
+        "path": "C.ERC20.burn",
+        "type": "functions"
+      },
+      "mint": {
+        "path": "C.ERC20.mint",
+        "type": "functions"
+      },
+      "onlyOwner": {
+        "path": "O.Ownable.onlyOwner",
+        "type": "modifiers"
+      },
+      "ownableConstructor": {
+        "path": "O.Ownable.constructor",
+        "type": "functions"
+      },
+      "owner": {
+        "path": "O.Ownable.owner",
+        "type": "functions"
+      },
+      "transfer": {
+        "path": "C.ERC20.transfer",
+        "type": "functions"
+      },
+      "transferFrom": {
+        "path": "C.ERC20.transferFrom",
+        "type": "functions"
+      },
+      "transferOwnership": {
+        "path": "O.Ownable.transferOwnership",
+        "type": "functions"
+      }
+    }
+  },
+  "solidity_code": {
+    "C": {
+      "@global": {
+        "base": [],
+        "code": ""
+      },
+      "ERC20": {
+        "base": [],
+        "code": "contract ERC20 {\n    uint256 public totalSupply;\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n    string public name;\n    string public symbol;\n    uint8 public decimals = 18;\n\n    constructor() {\n        name = {{name:str}};\n        symbol = {{symbol:str}};\n        totalSupply = {{total:int}};\n    }\n\n    function transfer(\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(msg.sender, recipient, amount);\n        return true;\n    }\n\n    function approve(address spender, uint256 amount) external returns (bool) {\n        allowance[msg.sender][spender] = amount;\n        emit Approval(msg.sender, spender, amount);\n        return true;\n    }\n\n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }\n\n    function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }\n\n    function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n}",
+        "events": {
+          "Approval": {
+            "code": "event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );"
+          },
+          "Transfer": {
+            "code": "event Transfer(address indexed from, address indexed to, uint256 value);"
+          }
+        },
+        "functions": {
+          "approve": {
+            "code": "function approve(address spender, uint256 amount) external returns (bool) {\n        allowance[msg.sender][spender] = amount;\n        emit Approval(msg.sender, spender, amount);\n        return true;\n    }",
+            "dependencies": {
+              "events": ["Approval"],
+              "variables": ["allowance"]
+            }
+          },
+          "burn": {
+            "code": "function burn(uint256 amount) external {\n        balanceOf[msg.sender] -= amount;\n        totalSupply -= amount;\n        emit Transfer(msg.sender, address(0), amount);\n    }",
+            "dependencies": {
+              "events": ["Transfer"],
+              "variables": ["totalSupply", "balanceOf"]
+            }
+          },
+          "constructor": {
+            "code": "constructor() {\n        name = {{name:str}};\n        symbol = {{symbol:str}};\n        totalSupply = {{total:int}};\n    }",
+            "dependencies": {
+              "variables": ["totalSupply", "name", "symbol"]
+            }
+          },
+          "mint": {
+            "code": "function mint(uint256 amount) external {\n        balanceOf[msg.sender] += amount;\n        totalSupply += amount;\n        emit Transfer(address(0), msg.sender, amount);\n    }",
+            "dependencies": {
+              "events": ["Transfer"],
+              "variables": ["totalSupply", "balanceOf"]
+            }
+          },
+          "transfer": {
+            "code": "function transfer(\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        balanceOf[msg.sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(msg.sender, recipient, amount);\n        return true;\n    }",
+            "dependencies": {
+              "events": ["Transfer"],
+              "variables": ["balanceOf"]
+            }
+          },
+          "transferFrom": {
+            "code": "function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool) {\n        allowance[sender][msg.sender] -= amount;\n        balanceOf[sender] -= amount;\n        balanceOf[recipient] += amount;\n        emit Transfer(sender, recipient, amount);\n        return true;\n    }",
+            "dependencies": {
+              "events": ["Transfer"],
+              "variables": ["balanceOf", "allowance"]
+            }
+          }
+        },
+        "variables": {
+          "allowance": {
+            "code": "mapping(address => mapping(address => uint256)) public allowance;"
+          },
+          "balanceOf": {
+            "code": "mapping(address => uint256) public balanceOf;"
+          },
+          "name": {
+            "code": "string public name;"
+          },
+          "symbol": {
+            "code": "string public symbol;"
+          },
+          "totalSupply": {
+            "code": "uint256 public totalSupply;"
+          }
+        }
+      }
+    },
+    "O": {
+      "@global": {
+        "base": [],
+        "code": ""
+      },
+      "Ownable": {
+        "base": [],
+        "code": "contract Ownable {\n    address private _owner;\n\n    constructor() {\n        _owner = msg.sender;\n    }\n\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    modifier onlyOwner() {\n        require(\n            owner() == msg.sender,\n            \"Ownership Assertion: Caller of the function is not the owner.\"\n        );\n        _;\n    }\n\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        _owner = newOwner;\n    }\n}",
+        "functions": {
+          "constructor": {
+            "code": "constructor() {\n        _owner = msg.sender;\n    }",
+            "dependencies": {
+              "variables": ["_owner"]
+            }
+          },
+          "owner": {
+            "code": "function owner() public view virtual returns (address) {\n        return _owner;\n    }",
+            "dependencies": {
+              "variables": ["_owner"]
+            }
+          },
+          "transferOwnership": {
+            "code": "function transferOwnership(address newOwner) public virtual onlyOwner {\n        _owner = newOwner;\n    }",
+            "dependencies": {
+              "variables": ["_owner"]
+            }
+          }
+        },
+        "modifiers": {
+          "onlyOwner": {
+            "code": "modifier onlyOwner() {\n        require(\n            owner() == msg.sender,\n            \"Ownership Assertion: Caller of the function is not the owner.\"\n        );\n        _;\n    }",
+            "dependencies": {
+              "functions": ["owner"]
+            }
+          }
+        },
+        "variables": {
+          "_owner": {
+            "code": "address private _owner;"
+          }
+        }
+      }
+    }
+  }
+}

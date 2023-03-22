@@ -1,0 +1,18 @@
+packages {
+  using std
+}
+
+contract Brojko combines {
+  std.ERC20Constructor with "Example" name and "EX" symbol and 10000 total
+  std.ownableConstructor
+  std.transfer
+  std.approve
+}
+
+administration {
+  managed by std.onlyOwner having partial access {
+    to Brojko {
+      std.transfer
+    }
+  }
+}

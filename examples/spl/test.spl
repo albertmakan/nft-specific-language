@@ -1,0 +1,19 @@
+packages {
+  using std
+  using std.onlyOwner
+}
+
+contract MyContract combines {
+  std.ERC20Constructor with "Example" name and "EX" symbol and 10000 total
+  std.ownableConstructor
+  std.transfer
+  std.approve
+}
+
+administration {
+  managed by onlyOwner having partial access {
+    to MyContract {
+      std.transfer
+    }
+  }
+}
