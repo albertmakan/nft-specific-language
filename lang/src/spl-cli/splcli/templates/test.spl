@@ -1,0 +1,29 @@
+// test comment
+packages {
+  using std.ERC20 as E
+}
+
+contract Brojko combines {
+  E.approve
+  E.transfer with "0x111111111111111111111111111111111111111" milos and 34% bc and "ABC" str and [
+    0x1111111111111111111111111111111111111111,
+    0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  ] owners
+}
+
+administration {
+  managed by E.multi_owner with "$contract_creator" owner and "necar" pera having partial access {
+    to Brojko {
+      E.approve
+      E.transfer
+    }
+  }
+  extended by E.multi_owner with [
+    0x1111111111111111111111111111111111111111,
+    0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  ] owners having partial access {
+    to Brojko {
+      E.approve
+    }
+  }
+}
