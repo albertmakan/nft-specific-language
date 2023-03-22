@@ -1,9 +1,10 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="spl-cli",
     version='0.0.1',
-    py_modules=['splcli.cli'],
+    packages=find_packages(),
+    package_data={"splcli": ["templates/*"]},
     install_requires=[
         'Click',
     ],
