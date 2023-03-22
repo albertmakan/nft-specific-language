@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spm-pvc
+spec:
+  storageClassName: microk8s-hostpath
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 15Gi
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: spm
+spec:
+  serviceName: spm
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spm
+  template:
+    metadata:
+      labels:
+        app: spm
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: spm
+          image: cr.bjelicaluka.com/spm:0.0.3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: spm-app
+            - containerPort: 9090
+              name: ipfs-gw
+          volumeMounts:
+            - name: db
+              mountPath: /app/spm_db
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: spm-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spm
+spec:
+  selector:
+    app: spm
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spm-gw
+spec:
+  selector:
+    app: spm
+  ports:
+    - port: 80
+      targetPort: 9090
+---
+apiVersion: "networking.k8s.io/v1"
+kind: Ingress
+metadata:
+  name: spm-ingress
+  annotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  rules:
+    - host: spm.bjelicaluka.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spm
+                port:
+                  number: 80
+    - host: gw.spm.bjelicaluka.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spm-gw
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - spm.bjelicaluka.com
+      # secretName: spm-staging-tls
+      secretName: spm-prod-tls
+    - hosts:
+        - gw.spm.bjelicaluka.com
+      # secretName: gw-spm-staging-tls
+      secretName: gw-spm-prod-tls
