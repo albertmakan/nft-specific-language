@@ -84,6 +84,7 @@ def generate(model: Script, output_file: str):
     for contract in contracts.values():
         contract.remove_redundant_dependencies()
         contract.insert_modifiers()
+        contract.check_multi_constructor()
 
     env = Environment(loader=BaseLoader)
     env.filters["sort_deps"] = lambda deps: sorted(list(deps), key=lambda d: (d.type, d.priority), reverse=True)
@@ -227,6 +228,24 @@ class Contract:
             if d in self.dependencies:
                 self.dependencies.remove(d)
 
+    def check_multi_constructor(self):
+        constructors = []
+        for fun in self.functions.values():
+            if fun.code.startswith(CONSTRUCTOR):
+                constructors.append(fun.name)
+        if len(constructors) < 2:
+            return
+        params, bodies = [], []
+        for c in constructors:
+            code = self.functions.pop(c).code
+            p = code[code.find('(')+1:code.find(')')].strip()
+            if p: params.append(p)
+            bodies.append(code[code.find('{')+1:code.find('}')])
+        self.functions[CONSTRUCTOR] = Function(
+            name=CONSTRUCTOR,
+            code=f"{CONSTRUCTOR}({', '.join(params)}) {{{''.join(bodies)}}}",
+            params=None, modifiers=None
+        )
 
 
 def format_param(param):

@@ -6,7 +6,7 @@ packages {
 
 package my_first_package
 {
-  constracts
+  contracts
   {
     erc20
     {

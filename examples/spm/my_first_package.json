@@ -1,7 +1,7 @@
 {
     "definition": {
         "my_first_package": {
-            "constracts": {
+            "contracts": {
                 "common_globals": {
                     "HelloContract": {
                         "path": "ERC20.Hello",
