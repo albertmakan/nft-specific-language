@@ -1,0 +1,32 @@
+
+packages {
+  using "./erc20.sol" as ERC20
+  using ownable as O
+}
+
+package my_first_package
+{
+  contracts
+  {
+    erc20
+    {
+      @function ERC20.ERC20.transfer
+      @function ERC20.ERC20.constructor as ERC20Constructor
+      @modifier ERC20.ERC20.onlyOwner
+
+      base {
+        @event ERC20.ERC20.Approval
+        @struct ERC20.ERC20BASE.ContractData
+      }
+    }
+  
+    @modifier O.onlyOwner
+
+    common_globals
+    {
+      @struct ERC20.Point
+      ERC20.add
+      @contract ERC20.Hello as HelloContract
+    }
+  }
+}

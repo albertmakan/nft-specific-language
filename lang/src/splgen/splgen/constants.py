@@ -11,6 +11,7 @@ GLOBAL = '@global'
 DEFINITION = "definition"
 SOL_CODE = "solidity_code"
 PACKAGES = "packages"
+CONSTRUCTOR = "constructor"
 
 SPM_PACKAGES_PATH = "spm_packages"
 PACKAGE_JSON_PATH = "package.json"

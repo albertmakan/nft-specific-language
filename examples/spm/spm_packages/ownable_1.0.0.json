@@ -1,0 +1,75 @@
+{
+    "definition": {
+        "ownable": {
+            "constructor": {
+                "path": "O.Ownable.constructor",
+                "type": "functions"
+            },
+            "onlyOwner": {
+                "path": "O.Ownable.onlyOwner",
+                "type": "modifiers"
+            },
+            "owner": {
+                "path": "O.Ownable.owner",
+                "type": "functions"
+            },
+            "transferOwnership": {
+                "path": "O.Ownable.transferOwnership",
+                "type": "functions"
+            }
+        }
+    },
+    "solidity_code": {
+        "O": {
+            "@global": {
+                "base": [],
+                "code": ""
+            },
+            "Ownable": {
+                "base": [],
+                "code": "contract Ownable {\n    address private _owner;\n\n    constructor() {\n        _owner = msg.sender;\n    }\n\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    modifier onlyOwner() {\n        require(\n            owner() == msg.sender,\n            \"Ownership Assertion: Caller of the function is not the owner.\"\n        );\n        _;\n    }\n\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        _owner = newOwner;\n    }\n}",
+                "functions": {
+                    "constructor": {
+                        "code": "constructor() {\n        _owner = msg.sender;\n    }",
+                        "dependencies": {
+                            "variables": [
+                                "_owner"
+                            ]
+                        }
+                    },
+                    "owner": {
+                        "code": "function owner() public view virtual returns (address) {\n        return _owner;\n    }",
+                        "dependencies": {
+                            "variables": [
+                                "_owner"
+                            ]
+                        }
+                    },
+                    "transferOwnership": {
+                        "code": "function transferOwnership(address newOwner) public virtual onlyOwner {\n        _owner = newOwner;\n    }",
+                        "dependencies": {
+                            "variables": [
+                                "_owner"
+                            ]
+                        }
+                    }
+                },
+                "modifiers": {
+                    "onlyOwner": {
+                        "code": "modifier onlyOwner() {\n        require(\n            owner() == msg.sender,\n            \"Ownership Assertion: Caller of the function is not the owner.\"\n        );\n        _;\n    }",
+                        "dependencies": {
+                            "functions": [
+                                "owner"
+                            ]
+                        }
+                    }
+                },
+                "variables": {
+                    "_owner": {
+                        "code": "address private _owner;"
+                    }
+                }
+            }
+        }
+    }
+}
