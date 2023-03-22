@@ -1,0 +1,22 @@
+{
+  "Init file": {
+    "prefix": "init",
+    "body": ["packages {\n\n}", "\n", "package ${1:package_name} {\n\n}"],
+    "description": "Init file with basic structures"
+  },
+  "using": {
+    "prefix": "using",
+    "body": ["using ${1:import} as ${2:package_alias}"],
+    "description": "define using statement"
+  },
+  "package": {
+    "prefix": "package ",
+    "body": ["package ${1:package_name} {\n\n}"],
+    "description": "define package"
+  },
+  "@": {
+    "prefix": "@",
+    "body": ["@${1|function,struct,event,modifier,contract|} ${2:export} as ${3:package_alias}"],
+    "description": "define export statement"
+  }
+}

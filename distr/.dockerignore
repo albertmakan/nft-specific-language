@@ -1,3 +1,9 @@
 node_modules/
+**/node_modules
+.docusaurus/
+**/.docusaurus
+build/
+**/build
 package-lock.json
+**/package-lock.json
 spm_db*

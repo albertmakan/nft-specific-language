@@ -1,65 +1,43 @@
-# spm README
+# Solidity Package Manager - Language Server 
 
-This is the README for your extension "spm". After writing up a brief description, we recommend including the following sections.
+This extension enables faster development of solidity packages. 
 
-## Features
+## Programming Languages and Frameworks
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The extension template has two parts, the extension part and language server part. The extension part is written in TypeScript, and language server part is written in Python over the [_pygls_][pygls] (Python language server) library.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+1. VS Code 1.64.0 or greater
+1. Python 3.7 or greater (SPM, textX, jsonmerge)
+1. node >= 14.19.0
+1. npm >= 8.3.0 (`npm` is installed with node, check npm version, use `npm install -g npm@8.3.0` to update)
+1. Python extension for VS Code
 
-## Extension Settings
+You should know to create and work with python virtual environments.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Getting Started
 
-For example:
+1. [Everything you need to know is in documentation](https://spm.bjelicaluka.com/)
 
-This extension contributes the following settings:
+## Features of this Extension
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+1. Syntax highlight
+1. Code snippets - init, package, using and @
+1. Definition referencing
+1. Syntax and semantic code validation
+1. Code completion
 
-## Known Issues
+## Building and Run the extension
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Run the `Debug Extension and Python` configuration form VS Code. That should build and debug the extension in host window.
 
-## Release Notes
+Note: if you just want to build you can run the build task in VS Code (`ctrl`+`shift`+`B`)
 
-Users appreciate release notes as you update your extension.
+## Debugging
 
-### 1.0.0
+To debug both TypeScript and Python code use `Debug Extension and Python` debug config. This is the recommended way. Also, when stopping, be sure to stop both the Typescript, and Python debug sessions. Otherwise, it may not reconnect to the python session.
 
-Initial release of ...
+To debug only TypeScript code, use `Debug Extension` debug config.
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+To debug a already running server or in production server, use `Python Attach`, and select the process that is running `lsp_server.py`.
